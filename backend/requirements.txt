@@ -1,0 +1,9 @@
+# Python Dependencies
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+python-dotenv
+networkx
+pandas
+websockets
