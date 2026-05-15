@@ -36,3 +36,9 @@ build/
 # Logs
 *.log
 logs/
+
+# Data
+backend/raw_data/
+backend/data/*.csv
+!backend/data/.gitkeep
+
