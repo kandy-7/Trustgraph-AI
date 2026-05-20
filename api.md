@@ -1,4 +1,4 @@
-# TrustGraph AI — Complete API Reference
+# TrustGraph AI — API Reference
 
 > **Base URL** `http://localhost:8000`  
 > **Swagger UI** → [http://localhost:8000/docs](http://localhost:8000/docs)  
@@ -41,7 +41,7 @@ python run.py
 | **Alerts** | | |
 | GET | `/api/alerts` | List fraud alerts (filterable) |
 | GET | `/api/alerts/{alert_id}` | Get one alert |
-| PATCH | `/api/alerts/{alert_id}` | Officer updates status/notes |
+| PATCH | `/api/alerts/{alert_id}` | Officer updates status / notes |
 | DELETE | `/api/alerts/{alert_id}` | Close an alert |
 | **Simulation** | | |
 | POST | `/api/simulate` | Run a fraud scenario simulation |
@@ -62,19 +62,19 @@ python run.py
 
 ## Risk Engine
 
-### How Risk Score is Calculated
+### How the Score Is Calculated
 
-The engine evaluates 7 behavioural rules. Scores are **additive and capped at 100**.
+The engine evaluates 7 behavioural rules. Scores are **additive, capped at 100**.
 
-| Rule ID | Label | Score | Trigger |
-|---------|-------|-------|---------|
+| Rule ID | Label | +Score | Trigger Condition |
+|---------|-------|--------|-------------------|
 | `high_amount` | High Transaction Amount | +30 | Amount > ₹50,000 |
 | `unknown_device` | Untrusted Device | +25 | `trusted_device: false` |
 | `new_beneficiary` | New Beneficiary | +20 | `beneficiary_type: "new"` |
 | `midnight_login` | Suspicious Login Time | +20 | `login_time` between 00:00–05:59 |
 | `historical_fraud` | Historical Fraud Signal | +30 | `isFraud: 1` |
 | `location_anomaly` | Location Anomaly | +15 | Location ≠ user's usual region |
-| `velocity_spike` | Velocity Spike | +20 | Amount ≥ 10× user's avg spend |
+| `velocity_spike` | Velocity Spike | +20 | Amount ≥ 10× user's average spend |
 
 ### Risk Bands
 
@@ -86,7 +86,7 @@ The engine evaluates 7 behavioural rules. Scores are **additive and capped at 10
 
 ---
 
-## 🟢 Health
+## Health
 
 ### `GET /`
 
@@ -119,11 +119,11 @@ curl http://localhost:8000/health
 
 ---
 
-## 💳 Transactions
+## Transactions
 
 ### `POST /api/transaction`
 
-Analyse a single transaction. Runs all 7 fraud rules, persists the result, and auto-creates a `FraudAlert` for MEDIUM/HIGH transactions.
+Analyse a single transaction. Runs all 7 fraud rules, persists the result, and auto-creates a `FraudAlert` for MEDIUM/HIGH risk.
 
 #### Request Body
 
@@ -148,13 +148,13 @@ Analyse a single transaction. Runs all 7 fraud rules, persists the result, and a
 | `TransactionID` | string | No | Auto-generated | Unique transaction ID |
 | `user_id` | string | **Yes** | — | Customer identifier |
 | `TransactionAmt` | float | **Yes** | — | Amount in INR (must be > 0) |
-| `payment_type` | string | No | `"UPI"` | `UPI` \| `NEFT` \| `RTGS` \| `IMPS` \| `Wallet` |
-| `location` | string | No | `"Unknown"` | City / state of transaction |
+| `payment_type` | string | No | `"UPI"` | `UPI` / `NEFT` / `RTGS` / `IMPS` / `Wallet` |
+| `location` | string | No | `"Unknown"` | City or state of the transaction |
 | `beneficiary_id` | string | No | null | Recipient account ID |
 | `beneficiary_type` | string | No | `"known"` | `"known"` or `"new"` |
-| `device_id` | string | No | null | Device fingerprint |
+| `device_id` | string | No | null | Device fingerprint string |
 | `trusted_device` | bool | No | `true` | Whether device is recognised |
-| `login_time` | string | No | `"12:00"` | Login time in HH:MM 24-hour format |
+| `login_time` | string | No | `"12:00"` | HH:MM in 24-hour format |
 | `isFraud` | int | No | `0` | Ground-truth label: `0` = legit, `1` = fraud |
 
 #### Response `200 OK`
@@ -178,17 +178,6 @@ Analyse a single transaction. Runs all 7 fraud rules, persists the result, and a
   "timestamp": "2026-05-20T16:30:00.000000"
 }
 ```
-
-#### Response Fields
-
-| Field | Type | Values |
-|-------|------|--------|
-| `risk_score` | int | 0–100 |
-| `risk_level` | string | `LOW` / `MEDIUM` / `HIGH` |
-| `alert` | bool | `true` if MEDIUM or HIGH |
-| `recommended_action` | string | `ALLOW` / `VERIFY` / `BLOCK` |
-| `suggested_step` | string \| null | Human-readable next step |
-| `reasons` | string[] | Triggered rule IDs |
 
 #### curl
 
@@ -215,7 +204,7 @@ List all analysed transactions with pagination and filtering.
 
 | Param | Type | Default | Description |
 |-------|------|---------|-------------|
-| `risk_level` | string | — | Filter: `LOW` \| `MEDIUM` \| `HIGH` |
+| `risk_level` | string | — | Filter: `LOW` / `MEDIUM` / `HIGH` |
 | `user_id` | string | — | Filter by user ID |
 | `limit` | int | 50 | Records per page (1–500) |
 | `offset` | int | 0 | Pagination offset |
@@ -260,12 +249,6 @@ curl "http://localhost:8000/api/transactions?user_id=USR-10042"
 
 Get the complete record for a single transaction.
 
-#### Path Parameters
-
-| Param | Description |
-|-------|-------------|
-| `txn_id` | Transaction ID, e.g. `TXN-DEMO001` |
-
 #### Response `200 OK`
 
 ```json
@@ -289,17 +272,15 @@ Get the complete record for a single transaction.
 }
 ```
 
-#### Errors
-
-| Code | Message |
-|------|---------|
+| Code | Error |
+|------|-------|
 | 404 | `"Transaction 'TXN-XXXX' not found"` |
 
 ---
 
 ### `GET /api/stats`
 
-Aggregate dashboard statistics for the entire dataset.
+Dashboard aggregate statistics for the full dataset.
 
 #### Response `200 OK`
 
@@ -319,46 +300,42 @@ Aggregate dashboard statistics for the entire dataset.
 
 ### `GET /api/rules`
 
-List all active fraud detection rules with their weights and descriptions.
+List all active fraud detection rules with weights and descriptions.
 
 #### Response `200 OK`
 
 ```json
 {
   "rules": [
-    { "id": "high_amount",      "label": "High Transaction Amount",   "weight": 30, "description": "Amount exceeds Rs.50,000" },
-    { "id": "unknown_device",   "label": "Untrusted / Unknown Device", "weight": 25, "description": "Transaction from unrecognised device" },
-    { "id": "new_beneficiary",  "label": "New Beneficiary",            "weight": 20, "description": "First-time transfer to this recipient" },
-    { "id": "midnight_login",   "label": "Suspicious Login Time",      "weight": 20, "description": "Login between 00:00 - 05:59" },
-    { "id": "historical_fraud", "label": "Historical Fraud Signal",    "weight": 30, "description": "Transaction bears a ground-truth fraud label" },
-    { "id": "location_anomaly", "label": "Location Anomaly",           "weight": 15, "description": "Location differs from user's usual region" },
-    { "id": "velocity_spike",   "label": "Velocity Spike",             "weight": 20, "description": "Amount is 10x the user's historical average" }
+    { "id": "high_amount",      "label": "High Transaction Amount",    "weight": 30 },
+    { "id": "unknown_device",   "label": "Untrusted / Unknown Device",  "weight": 25 },
+    { "id": "new_beneficiary",  "label": "New Beneficiary",             "weight": 20 },
+    { "id": "midnight_login",   "label": "Suspicious Login Time",       "weight": 20 },
+    { "id": "historical_fraud", "label": "Historical Fraud Signal",     "weight": 30 },
+    { "id": "location_anomaly", "label": "Location Anomaly",            "weight": 15 },
+    { "id": "velocity_spike",   "label": "Velocity Spike",              "weight": 20 }
   ]
 }
 ```
 
 ---
 
-## 🚨 Fraud Alerts
+## Fraud Alerts
 
-Alerts are auto-created for every MEDIUM or HIGH risk transaction. Fraud officers use these endpoints to manage their investigation queue.
+Alerts are auto-created for every MEDIUM or HIGH risk transaction.
 
-### Alert Status Flow
+**Status flow:** `OPEN` → `REVIEWED` → `CLOSED`
 
-```
-OPEN  →  REVIEWED  →  CLOSED
-```
+---
 
 ### `GET /api/alerts`
-
-List all fraud alerts.
 
 #### Query Parameters
 
 | Param | Type | Description |
 |-------|------|-------------|
-| `risk_level` | string | `HIGH` \| `MEDIUM` |
-| `status` | string | `OPEN` \| `REVIEWED` \| `CLOSED` |
+| `risk_level` | string | `HIGH` / `MEDIUM` |
+| `status` | string | `OPEN` / `REVIEWED` / `CLOSED` |
 | `user_id` | string | Filter by user |
 | `limit` | int | Records per page (default 50) |
 | `offset` | int | Pagination offset |
@@ -388,18 +365,13 @@ List all fraud alerts.
 }
 ```
 
-#### curl
-
 ```bash
-# All open HIGH alerts
 curl "http://localhost:8000/api/alerts?risk_level=HIGH&status=OPEN"
 ```
 
 ---
 
 ### `GET /api/alerts/{alert_id}`
-
-Fetch a single alert by its ID.
 
 #### Response `200 OK`
 
@@ -423,7 +395,7 @@ Fetch a single alert by its ID.
 
 ### `PATCH /api/alerts/{alert_id}`
 
-Officer updates the investigation status or appends notes.
+Officer updates investigation status or adds notes.
 
 #### Request Body
 
@@ -434,10 +406,10 @@ Officer updates the investigation status or appends notes.
 }
 ```
 
-| Field | Type | Values | Description |
-|-------|------|--------|-------------|
-| `status` | string | `OPEN` \| `REVIEWED` \| `CLOSED` | New status |
-| `officer_notes` | string | Any text | Investigation notes |
+| Field | Values |
+|-------|--------|
+| `status` | `OPEN` / `REVIEWED` / `CLOSED` |
+| `officer_notes` | Any free-text string |
 
 #### Response `200 OK`
 
@@ -450,8 +422,6 @@ Officer updates the investigation status or appends notes.
 }
 ```
 
-#### curl
-
 ```bash
 curl -X PATCH http://localhost:8000/api/alerts/ALT-A1B2C3D4E5 \
   -H "Content-Type: application/json" \
@@ -462,9 +432,7 @@ curl -X PATCH http://localhost:8000/api/alerts/ALT-A1B2C3D4E5 \
 
 ### `DELETE /api/alerts/{alert_id}`
 
-Soft-closes an alert (sets status to CLOSED, data is retained).
-
-#### Response `200 OK`
+Soft-closes an alert (data retained, status set to CLOSED).
 
 ```json
 { "success": true, "alert_id": "ALT-A1B2C3D4E5", "status": "CLOSED" }
@@ -472,20 +440,22 @@ Soft-closes an alert (sets status to CLOSED, data is retained).
 
 ---
 
-## 🎭 Simulation
+## Simulation
 
-Generate synthetic transactions to test the fraud engine. Every simulated transaction is fully analysed and stored.
+Generate synthetic transactions to populate and test the fraud engine. Every simulated transaction is fully analysed and stored.
 
 ### Scenarios
 
-| Key | Fraud? | Amount | Time | Device | Beneficiary |
-|-----|--------|--------|------|--------|-------------|
-| `account_takeover` | Yes | ₹60k–2L | 00–04 | Untrusted | New |
-| `sim_swap` | Yes | ₹50k–1.5L | 01–05 | Untrusted | New |
-| `upi_phishing` | Yes | ₹5k–30k | 09–22 | Trusted | New |
-| `mule_account` | Yes | ₹10k–80k | 08–20 | Trusted | New |
-| `normal_user` | No | ₹200–5k | 08–21 | Trusted | Known |
-| `random` | 50/50 | Mixed | Mixed | Mixed | Mixed |
+| Key | Fraud? | Amount Range | Login Time | Device |
+|-----|--------|-------------|------------|--------|
+| `account_takeover` | Yes | ₹60k–2L | 00:00–04:59 | Untrusted |
+| `sim_swap` | Yes | ₹50k–1.5L | 01:00–05:59 | Untrusted |
+| `upi_phishing` | Yes | ₹5k–30k | 09:00–22:00 | Trusted |
+| `mule_account` | Yes | ₹10k–80k | 08:00–20:00 | Trusted |
+| `normal_user` | No | ₹200–5k | 08:00–21:00 | Trusted |
+| `random` | 50/50 | Mixed | Mixed | Mixed |
+
+---
 
 ### `POST /api/simulate`
 
@@ -501,9 +471,9 @@ Generate synthetic transactions to test the fraud engine. Every simulated transa
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `scenario` | string | `"random"` | Scenario key from table above |
-| `count` | int | 1 | Transactions to generate (1–50) |
-| `user_id` | string | Random | Pin all transactions to this user |
+| `scenario` | string | `"random"` | Scenario key from the table above |
+| `count` | int | 1 | Transactions to generate (max 50) |
+| `user_id` | string | Random per txn | Pin all transactions to this user |
 
 #### Response `200 OK`
 
@@ -528,15 +498,13 @@ Generate synthetic transactions to test the fraud engine. Every simulated transa
 }
 ```
 
-#### curl
-
 ```bash
 # Simulate 5 account takeover attacks
 curl -X POST http://localhost:8000/api/simulate \
   -H "Content-Type: application/json" \
   -d '{"scenario": "account_takeover", "count": 5}'
 
-# Simulate 10 random mixed transactions
+# 10 random mixed transactions
 curl -X POST http://localhost:8000/api/simulate \
   -H "Content-Type: application/json" \
   -d '{"scenario": "random", "count": 10}'
@@ -546,32 +514,30 @@ curl -X POST http://localhost:8000/api/simulate \
 
 ### `GET /api/simulate/scenarios`
 
-List all available scenario templates.
-
 #### Response `200 OK`
 
 ```json
 {
   "scenarios": [
-    { "key": "account_takeover", "description": "Attacker takes over account and drains funds...", "is_fraud": true },
-    { "key": "sim_swap",         "description": "SIM swap fraud – new device, high amount...",    "is_fraud": true },
-    { "key": "upi_phishing",     "description": "UPI phishing – medium amount, new beneficiary",  "is_fraud": true },
-    { "key": "mule_account",     "description": "Money mule – receives and forwards funds...",    "is_fraud": true },
-    { "key": "normal_user",      "description": "Legitimate user performing a routine transaction","is_fraud": false },
-    { "key": "random",           "description": "50/50 mix of fraud and normal",                  "is_fraud": null }
+    { "key": "account_takeover", "is_fraud": true,  "description": "Attacker takes over account..." },
+    { "key": "sim_swap",         "is_fraud": true,  "description": "SIM swap fraud..." },
+    { "key": "upi_phishing",     "is_fraud": true,  "description": "UPI phishing..." },
+    { "key": "mule_account",     "is_fraud": true,  "description": "Money mule chain..." },
+    { "key": "normal_user",      "is_fraud": false, "description": "Legitimate routine transaction" },
+    { "key": "random",           "is_fraud": null,  "description": "50/50 mix of fraud and normal" }
   ]
 }
 ```
 
 ---
 
-## 🕸️ Graph Analysis
+## Graph Analysis
 
-Builds a directed graph of user → beneficiary money flows to detect fraud rings.
+Builds a directed graph of `user → beneficiary` money flows to detect fraud rings.
+
+---
 
 ### `GET /api/graph`
-
-Returns the full transaction graph with flagged nodes and detected risk clusters.
 
 #### Query Parameters
 
@@ -596,15 +562,9 @@ Returns the full transaction graph with flagged nodes and detected risk clusters
 }
 ```
 
-> `risk_clusters` — groups of accounts (users + beneficiaries) that form a connected **fraud ring**. Each cluster has ≥2 flagged nodes.
-
-#### curl
+> `risk_clusters` — connected account groups forming a suspected **fraud ring** (2+ flagged nodes).
 
 ```bash
-# Full graph
-curl "http://localhost:8000/api/graph"
-
-# Fraud-only subgraph
 curl "http://localhost:8000/api/graph?fraud_only=true"
 ```
 
@@ -612,7 +572,7 @@ curl "http://localhost:8000/api/graph?fraud_only=true"
 
 ### `GET /api/graph/user/{user_id}`
 
-Returns the direct beneficiaries and second-degree connections for one user.
+Returns direct beneficiaries and second-degree connections for one user.
 
 #### Response `200 OK`
 
@@ -627,11 +587,9 @@ Returns the direct beneficiaries and second-degree connections for one user.
 
 | Field | Description |
 |-------|-------------|
-| `direct` | Accounts this user directly transacted with |
+| `direct` | Accounts this user transacted with directly |
 | `indirect` | 2nd-degree connections (beneficiaries of their beneficiaries) |
-| `flagged_indirect` | Count of flagged indirect accounts — key fraud ring signal |
-
-#### curl
+| `flagged_indirect` | Count of flagged indirect nodes — high value = fraud ring signal |
 
 ```bash
 curl "http://localhost:8000/api/graph/user/USR-10042"
@@ -639,13 +597,19 @@ curl "http://localhost:8000/api/graph/user/USR-10042"
 
 ---
 
-## 🤖 AI (Gemini)
+## AI (Gemini)
 
-All AI endpoints use **Google Gemini `gemini-1.5-flash`**. Set `GEMINI_API_KEY` in `.env` to enable. Without it, endpoints return a placeholder message — all other endpoints remain fully functional.
+All four endpoints use **Google Gemini `gemini-1.5-flash`**.
+
+Set `GEMINI_API_KEY` in `.env` to enable. Without it, a placeholder message is returned — all other endpoints remain fully functional.
+
+Get a free API key at → [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+
+---
 
 ### `POST /api/ai/explain`
 
-Gemini writes a **3–4 sentence officer-facing explanation** of a fraud decision — covering what triggered the alert, what the risk indicators mean, and what action to take.
+Gemini writes a **3–4 sentence officer-facing explanation** of a fraud decision.
 
 #### Request Body
 
@@ -658,11 +622,9 @@ Gemini writes a **3–4 sentence officer-facing explanation** of a fraud decisio
 ```json
 {
   "model":    "gemini-1.5-flash",
-  "response": "Transaction TXN-DEMO001 was blocked due to a combination of four high-risk signals: the amount of ₹95,000 significantly exceeds the ₹50,000 threshold, the login occurred at 2:14 AM which is a known fraud window, the transaction was initiated from an unrecognised device, and the recipient is a first-time beneficiary. Together these indicators produce a risk score of 95/100, consistent with an account takeover attempt. The recommended action is to immediately freeze the transaction and contact the customer via their registered mobile number for identity verification."
+  "response": "Transaction TXN-DEMO001 was blocked due to four simultaneous high-risk signals: the amount of Rs.95,000 exceeds the Rs.50,000 threshold, the login occurred at 2:14 AM, the transaction came from an unrecognised device, and the recipient is a first-time beneficiary. Together these indicators produce a risk score of 95/100, consistent with an account takeover. The recommended action is to freeze the transaction and contact the customer via their registered mobile number for identity verification."
 }
 ```
-
-#### curl
 
 ```bash
 curl -X POST http://localhost:8000/api/ai/explain \
@@ -674,7 +636,7 @@ curl -X POST http://localhost:8000/api/ai/explain \
 
 ### `POST /api/ai/narrate`
 
-Gemini generates a **2-sentence customer-friendly notification** — suitable for in-app alerts or SMS. Non-technical, empathetic tone.
+Gemini generates a **2-sentence customer-friendly notification** — suitable for in-app alerts or SMS.
 
 #### Request Body
 
@@ -687,11 +649,9 @@ Gemini generates a **2-sentence customer-friendly notification** — suitable fo
 ```json
 {
   "model":    "gemini-1.5-flash",
-  "response": "We've temporarily held your transaction of ₹95,000 as it shows some unusual patterns that our security system flagged for your protection. Please contact our support team or complete the verification step in your app to release the funds."
+  "response": "We have temporarily held your transaction of Rs.95,000 as our security system detected some unusual activity for your protection. Please verify your identity through the app or call our support team to release the funds."
 }
 ```
-
-#### curl
 
 ```bash
 curl -X POST http://localhost:8000/api/ai/narrate \
@@ -703,7 +663,7 @@ curl -X POST http://localhost:8000/api/ai/narrate \
 
 ### `POST /api/ai/compliance`
 
-Gemini generates a **professional compliance report** for the most recent flagged transactions — suitable for RBI/NPCI reporting or internal fraud review boards.
+Gemini generates a **professional compliance report** for a batch of flagged transactions — suitable for RBI/NPCI reporting or internal fraud review boards.
 
 #### Request Body
 
@@ -713,18 +673,16 @@ Gemini generates a **professional compliance report** for the most recent flagge
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `limit` | int | 50 | Number of recent HIGH/MEDIUM transactions to summarise (1–500) |
+| `limit` | int | 50 | Recent HIGH/MEDIUM transactions to summarise (max 500) |
 
 #### Response `200 OK`
 
 ```json
 {
   "model":    "gemini-1.5-flash",
-  "response": "During the review period, TrustGraph AI analysed 50 flagged transactions comprising 32 HIGH-risk and 18 MEDIUM-risk cases. The predominant anomaly patterns detected were account takeover attempts (characterised by midnight logins, untrusted devices, and new beneficiary transfers above ₹50,000) and UPI phishing incidents involving new beneficiaries on trusted devices. The system automatically blocked all HIGH-risk transactions and triggered OTP re-verification for MEDIUM-risk cases, preventing an estimated ₹24.7 lakh in potential losses. Manual review is recommended for 12 borderline cases with scores in the 55–65 range, particularly those involving location anomalies without device changes. This report is prepared in accordance with RBI Circular RBI/2021-22/112 on digital payment fraud reporting requirements."
+  "response": "During the review period, TrustGraph AI analysed 50 flagged transactions comprising 32 HIGH-risk and 18 MEDIUM-risk cases. The predominant patterns were account takeover attempts and UPI phishing. The system automatically blocked all HIGH-risk transactions and triggered OTP re-verification for MEDIUM-risk cases. Manual review is recommended for 12 borderline cases. This report is prepared in accordance with RBI Circular RBI/2021-22/112 on digital payment fraud reporting."
 }
 ```
-
-#### curl
 
 ```bash
 curl -X POST http://localhost:8000/api/ai/compliance \
@@ -736,28 +694,28 @@ curl -X POST http://localhost:8000/api/ai/compliance \
 
 ### `POST /api/ai/chat`
 
-**Free-form fraud intelligence Q&A** powered by Gemini. Ask any question about fraud patterns, UPI risks, investigation steps, or RBI guidelines. Optionally attach a transaction ID for live context.
+**Free-form fraud intelligence Q&A.** Attach an optional `transaction_id` to give Gemini live context.
 
 #### Request Body
 
 ```json
 {
-  "message":        "Why was this transaction blocked and what should I do next?",
+  "message":        "Is this a SIM swap attack? What should I do?",
   "transaction_id": "TXN-DEMO001"
 }
 ```
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `message` | string | **Yes** | Your question for the fraud agent |
-| `transaction_id` | string | No | Attach this transaction as context |
+| `message` | string | **Yes** | Your question |
+| `transaction_id` | string | No | Attach transaction as context |
 
 #### Response `200 OK`
 
 ```json
 {
   "model":    "gemini-1.5-flash",
-  "response": "Transaction TXN-DEMO001 was blocked because it triggered four critical risk indicators simultaneously: a very high amount (₹95,000), an unrecognised device, a new beneficiary, and a 2 AM login. This pattern is a textbook account takeover. Recommended next steps: (1) Call the customer on their registered number, (2) Ask them to verify via the app's face recognition, (3) If confirmed fraud, file a SAR report under PMLA guidelines and notify NPCI's fraud reporting portal within 24 hours."
+  "response": "Based on the transaction context, this appears to be an account takeover rather than a classic SIM swap — the device fingerprint changed but no SIM change was detected. Recommended steps: (1) Call the customer on their registered number, (2) Trigger face verification in the app, (3) If confirmed fraud, file an SAR under PMLA guidelines and notify NPCI's fraud portal within 24 hours."
 }
 ```
 
@@ -767,30 +725,31 @@ curl -X POST http://localhost:8000/api/ai/compliance \
 # With transaction context
 curl -X POST http://localhost:8000/api/ai/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "Is this a SIM swap attack?", "transaction_id": "TXN-DEMO001"}'
+  -d '{"message": "Is this a SIM swap?", "transaction_id": "TXN-DEMO001"}'
 
 # General fraud knowledge
 curl -X POST http://localhost:8000/api/ai/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "What are the top signs of UPI phishing in India?"}'
 
-# RBI guidelines
+# RBI compliance guidance
 curl -X POST http://localhost:8000/api/ai/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "What are our reporting obligations under RBI circular on digital fraud?"}'
+  -d '{"message": "What are our reporting obligations under RBI digital fraud guidelines?"}'
 ```
 
 ---
 
-## 🔌 WebSocket
+## WebSocket
 
-Connect to receive real-time push events without polling.
+Connect to receive **real-time push events** without polling the REST API.
+
+---
 
 ### `WS /ws/transactions`
 
 Live stream of every transaction analysis result.
 
-**Connect**
 ```
 ws://localhost:8000/ws/transactions
 ```
@@ -805,7 +764,7 @@ ws://localhost:8000/ws/transactions
 }
 ```
 
-**Per transaction push**
+**Per-transaction push**
 ```json
 {
   "type": "transaction",
@@ -822,7 +781,7 @@ ws://localhost:8000/ws/transactions
 }
 ```
 
-**Keep-alive**: send `"ping"` → receive `{"type": "pong"}`
+Send `"ping"` → receive `{"type": "pong"}` for keep-alive.
 
 ---
 
@@ -830,7 +789,6 @@ ws://localhost:8000/ws/transactions
 
 Live stream of MEDIUM and HIGH risk alerts only.
 
-**Connect**
 ```
 ws://localhost:8000/ws/alerts
 ```
@@ -852,54 +810,22 @@ ws://localhost:8000/ws/alerts
 
 ---
 
-## ⚠️ Error Responses
-
-All errors use standard FastAPI HTTP responses:
+## Error Responses
 
 ```json
 { "detail": "Human-readable error message" }
 ```
 
-| Code | When |
-|------|------|
-| `400` | Invalid input (e.g. unknown scenario key, invalid status) |
-| `404` | Resource not found (transaction ID, alert ID) |
-| `422` | Pydantic validation error (missing required fields, wrong types) |
+| HTTP Code | Cause |
+|-----------|-------|
+| `400` | Bad request (invalid scenario key, invalid status value) |
+| `404` | Resource not found (transaction or alert ID does not exist) |
+| `422` | Pydantic validation error (missing required field or wrong type) |
 | `500` | Internal server error |
 
 ---
 
-## 📁 Project Structure
-
-```
-backend/
-├── main.py                    # FastAPI app + router registration
-├── config.py                  # Env vars, risk thresholds
-├── database.py                # SQLite engine + session
-├── requirements.txt
-│
-├── models/
-│   ├── schemas.py             # Pydantic request/response models
-│   └── db_models.py           # SQLAlchemy ORM tables
-│
-├── services/
-│   ├── fraud_engine.py        # 7-rule risk scoring engine
-│   ├── simulator.py           # Fraud scenario generator
-│   ├── graph_engine.py        # NetworkX graph builder
-│   └── ai_engine.py           # Gemini AI (explain/narrate/compliance/chat)
-│
-└── routes/
-    ├── transaction.py         # POST /api/transaction, GET /api/transactions
-    ├── alerts.py              # GET/PATCH/DELETE /api/alerts
-    ├── simulation.py          # POST /api/simulate
-    ├── graph.py               # GET /api/graph
-    ├── ai.py                  # POST /api/ai/*
-    └── websocket.py           # WS /ws/transactions, /ws/alerts
-```
-
----
-
-## 🔧 Environment Variables
+## Environment Variables
 
 ```env
 HOST=0.0.0.0
@@ -911,4 +837,32 @@ GEMINI_MODEL=gemini-1.5-flash
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 ```
 
-Get your Gemini API key at [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+---
+
+## Project Structure
+
+```
+backend/
+├── main.py                  # FastAPI app + router wiring
+├── config.py                # Env vars, risk thresholds
+├── database.py              # SQLite engine + session
+├── requirements.txt
+│
+├── models/
+│   ├── schemas.py           # Pydantic request/response models
+│   └── db_models.py         # SQLAlchemy ORM tables
+│
+├── services/
+│   ├── fraud_engine.py      # 7-rule behavioural scoring engine
+│   ├── simulator.py         # Fraud scenario generators
+│   ├── graph_engine.py      # NetworkX fraud ring detection
+│   └── ai_engine.py         # Google Gemini AI integration
+│
+└── routes/
+    ├── transaction.py       # /api/transaction  /api/transactions  /api/stats  /api/rules
+    ├── alerts.py            # /api/alerts
+    ├── simulation.py        # /api/simulate
+    ├── graph.py             # /api/graph
+    ├── ai.py                # /api/ai/*
+    └── websocket.py         # /ws/transactions  /ws/alerts
+```

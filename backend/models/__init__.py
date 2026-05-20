@@ -1,1 +1,1 @@
-# Models Package Initialization
+# TrustGraph AI – Models Package
