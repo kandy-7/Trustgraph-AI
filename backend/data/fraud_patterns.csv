@@ -1,1 +1,11 @@
-
+pattern_id,description,risk_score
+PAT001,UPI Phishing - New beneficiary with late-night UPI transfer,75
+PAT002,SIM Swap - New device with high-amount IMPS transaction,90
+PAT003,Account Takeover - Unknown device with location anomaly and NEFT transfer,88
+PAT004,Mule Account - Frequent small transfers across multiple locations,60
+PAT005,Money Laundering - High-volume rapid transfers to known accounts,80
+PAT006,Midnight Transfer - Any transaction between 00:00 and 05:00,45
+PAT007,High Amount Anomaly - Transaction 5x above user average,70
+PAT008,Untrusted Device - Transaction from device not in user trusted list,55
+PAT009,Location Anomaly - Transaction from unusual geographic location,50
+PAT010,New Beneficiary High Amount - First transfer above 50000 to new payee,85

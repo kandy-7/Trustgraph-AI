@@ -1,1 +1,14 @@
-
+user_id,avg_transaction,usual_location,trusted_devices
+U1001,15000.00,Mumbai,"iPhone 13,iPhone 12"
+U1002,5000.00,Delhi,"Samsung S21,Laptop Dell"
+U1003,600.00,Bangalore,"OnePlus 9"
+U1004,3000.00,Chennai,"iPhone 12,iPad"
+U1005,2000.00,Pune,"Redmi Note 10"
+U1006,20000.00,Mumbai,"MacBook Pro,iPhone 14"
+U1007,22000.00,Coimbatore,"Samsung S22"
+U1008,4500.00,Delhi,"iPhone 14"
+U1009,1000.00,Pune,"Redmi 9"
+U1010,2500.00,Chennai,"iPhone 11"
+U1011,400.00,Bangalore,"Pixel 6"
+U1012,16000.00,Hyderabad,"Samsung A52,Laptop HP"
+U1013,8000.00,Mumbai,"iPhone 13"

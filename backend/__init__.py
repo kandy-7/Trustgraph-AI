@@ -1,1 +1,1 @@
-# TrustGraph AI - Package Initialization
+# TrustGraph AI – Backend Package
