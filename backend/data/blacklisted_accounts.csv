@@ -1,1 +1,6 @@
-
+account_id,reason
+U1002,Confirmed fraud - multiple unauthorized IMPS transfers
+U1006,Mule account - rapid high-value transfers detected
+ACC_EXT_009,Known money laundering network participant
+ACC_EXT_017,SIM swap fraud victim turned perpetrator
+BEN_884,Flagged beneficiary - associated with phishing ring

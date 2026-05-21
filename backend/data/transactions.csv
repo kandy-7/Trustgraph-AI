@@ -1,1 +1,121 @@
-
+transaction_id,user_id,amount,location,device,login_time,beneficiary_type,payment_type
+TXN001,U1001,12500.00,Mumbai,iPhone 13,09:32,known,UPI
+TXN002,U1002,87000.00,Delhi,Samsung S21,02:14,new,IMPS
+TXN003,U1003,450.00,Bangalore,OnePlus 9,14:05,known,UPI
+TXN004,U1004,3200.00,Chennai,iPhone 12,11:22,known,NEFT
+TXN005,U1001,95000.00,Hyderabad,Unknown Device,03:45,new,IMPS
+TXN006,U1005,1500.00,Pune,Redmi Note 10,10:10,known,UPI
+TXN007,U1006,62000.00,Mumbai,MacBook Pro,23:58,new,NEFT
+TXN008,U1003,800.00,Bangalore,OnePlus 9,15:30,known,UPI
+TXN009,U1007,25000.00,Coimbatore,Samsung S22,08:45,known,CARD
+TXN010,U1002,110000.00,Unknown,Unknown Device,01:12,new,IMPS
+TXN011,U1008,5500.00,Delhi,iPhone 14,13:00,known,UPI
+TXN012,U1009,900.00,Pune,Redmi 9,16:20,known,UPI
+TXN013,U1005,48000.00,Mumbai,Unknown Device,04:33,new,NEFT
+TXN014,U1010,2200.00,Chennai,iPhone 11,09:05,known,CARD
+TXN015,U1001,75000.00,Delhi,Unknown Device,00:47,new,IMPS
+TXN016,U1011,350.00,Bangalore,Pixel 6,12:15,known,UPI
+TXN017,U1012,18000.00,Hyderabad,Samsung A52,10:30,known,NEFT
+TXN018,U1004,55000.00,Unknown,Unknown Device,03:10,new,IMPS
+TXN019,U1013,7800.00,Mumbai,iPhone 13,14:45,known,UPI
+TXN020,U1006,130000.00,Chennai,Unknown Device,02:55,new,NEFT
+TXN021,U1014,4200.00,Delhi,Redmi Note 11,11:05,known,UPI
+TXN022,U1015,320.00,Pune,iPhone SE,15:40,known,UPI
+TXN023,U1016,67000.00,Mumbai,Unknown Device,01:30,new,IMPS
+TXN024,U1017,9500.00,Bangalore,Samsung M31,09:55,known,NEFT
+TXN025,U1018,1100.00,Chennai,Realme 8,13:25,known,UPI
+TXN026,U1019,88000.00,Unknown,Unknown Device,04:10,new,IMPS
+TXN027,U1020,2800.00,Hyderabad,Vivo V21,10:45,known,UPI
+TXN028,U1001,6700.00,Mumbai,iPhone 13,11:30,known,CARD
+TXN029,U1003,420.00,Bangalore,OnePlus 9,16:00,known,UPI
+TXN030,U1021,51000.00,Delhi,Unknown Device,03:22,new,NEFT
+TXN031,U1022,1800.00,Pune,Samsung S20,12:10,known,UPI
+TXN032,U1007,31000.00,Coimbatore,Samsung S22,10:20,known,NEFT
+TXN033,U1023,760.00,Chennai,Redmi 8,14:50,known,UPI
+TXN034,U1024,44000.00,Mumbai,Unknown Device,02:05,new,IMPS
+TXN035,U1011,600.00,Bangalore,Pixel 6,17:30,known,UPI
+TXN036,U1025,72000.00,Unknown,Unknown Device,00:55,new,IMPS
+TXN037,U1008,3400.00,Delhi,iPhone 14,09:15,known,CARD
+TXN038,U1026,15000.00,Hyderabad,OnePlus Nord,11:40,known,NEFT
+TXN039,U1012,20000.00,Hyderabad,Samsung A52,14:00,known,NEFT
+TXN040,U1027,530.00,Pune,Redmi 10,15:55,known,UPI
+TXN041,U1028,93000.00,Unknown,Unknown Device,03:50,new,IMPS
+TXN042,U1004,1600.00,Chennai,iPhone 12,10:05,known,UPI
+TXN043,U1029,8200.00,Mumbai,Moto G60,13:35,known,CARD
+TXN044,U1030,46000.00,Delhi,Unknown Device,01:48,new,NEFT
+TXN045,U1002,2500.00,Delhi,Samsung S21,11:20,known,UPI
+TXN046,U1031,680.00,Bangalore,Realme C25,16:45,known,UPI
+TXN047,U1032,57000.00,Mumbai,Unknown Device,04:20,new,IMPS
+TXN048,U1033,11000.00,Chennai,iPhone XR,09:40,known,NEFT
+TXN049,U1005,1300.00,Pune,Redmi Note 10,12:30,known,UPI
+TXN050,U1034,83000.00,Unknown,Unknown Device,02:33,new,IMPS
+TXN051,U1009,750.00,Pune,Redmi 9,15:10,known,UPI
+TXN052,U1035,26000.00,Hyderabad,Samsung F42,10:55,known,NEFT
+TXN053,U1036,4900.00,Delhi,Vivo Y73,13:50,known,CARD
+TXN054,U1037,69000.00,Unknown,Unknown Device,00:28,new,IMPS
+TXN055,U1013,9100.00,Mumbai,iPhone 13,11:15,known,UPI
+TXN056,U1038,1400.00,Bangalore,OnePlus 8T,16:30,known,UPI
+TXN057,U1039,38000.00,Chennai,Unknown Device,03:05,new,NEFT
+TXN058,U1040,2100.00,Pune,Redmi Note 9,12:45,known,UPI
+TXN059,U1041,101000.00,Unknown,Unknown Device,01:55,new,IMPS
+TXN060,U1017,7200.00,Bangalore,Samsung M31,10:10,known,CARD
+TXN061,U1042,5300.00,Delhi,iPhone 13 Pro,09:25,known,UPI
+TXN062,U1043,79000.00,Unknown,Unknown Device,04:40,new,IMPS
+TXN063,U1020,3100.00,Hyderabad,Vivo V21,13:00,known,NEFT
+TXN064,U1044,870.00,Chennai,Redmi 9C,15:35,known,UPI
+TXN065,U1001,14000.00,Mumbai,iPhone 12,11:00,known,CARD
+TXN066,U1045,48500.00,Mumbai,Unknown Device,02:18,new,NEFT
+TXN067,U1046,1200.00,Bangalore,Samsung A22,16:55,known,UPI
+TXN068,U1047,33000.00,Delhi,Unknown Device,03:35,new,IMPS
+TXN069,U1048,6400.00,Pune,iPhone 11 Pro,10:30,known,CARD
+TXN070,U1049,91000.00,Unknown,Unknown Device,01:05,new,IMPS
+TXN071,U1022,2300.00,Pune,Samsung S20,12:40,known,UPI
+TXN072,U1050,17500.00,Hyderabad,OnePlus 9R,11:25,known,NEFT
+TXN073,U1024,52000.00,Unknown,Unknown Device,00:15,new,IMPS
+TXN074,U1051,940.00,Bangalore,Realme 7,14:20,known,UPI
+TXN075,U1052,64000.00,Mumbai,Unknown Device,04:55,new,NEFT
+TXN076,U1029,7600.00,Mumbai,Moto G60,10:50,known,CARD
+TXN077,U1053,1900.00,Chennai,Vivo Y12,13:15,known,UPI
+TXN078,U1054,43000.00,Unknown,Unknown Device,02:42,new,IMPS
+TXN079,U1014,3700.00,Delhi,Redmi Note 11,11:50,known,NEFT
+TXN080,U1055,580.00,Pune,iPhone SE 2,15:25,known,UPI
+TXN081,U1056,78000.00,Unknown,Unknown Device,03:00,new,IMPS
+TXN082,U1018,1050.00,Chennai,Realme 8,12:00,known,UPI
+TXN083,U1057,28000.00,Bangalore,Samsung A71,10:15,known,NEFT
+TXN084,U1058,5800.00,Delhi,iPhone 12 Mini,14:35,known,CARD
+TXN085,U1059,97000.00,Unknown,Unknown Device,01:38,new,IMPS
+TXN086,U1023,690.00,Chennai,Redmi 8,16:10,known,UPI
+TXN087,U1060,39000.00,Hyderabad,Unknown Device,04:02,new,NEFT
+TXN088,U1007,22000.00,Coimbatore,Samsung S22,09:50,known,CARD
+TXN089,U1061,1700.00,Pune,Realme C21,12:55,known,UPI
+TXN090,U1062,86000.00,Unknown,Unknown Device,00:40,new,IMPS
+TXN091,U1033,9800.00,Chennai,iPhone XR,10:40,known,NEFT
+TXN092,U1063,4100.00,Mumbai,Vivo V23,13:20,known,UPI
+TXN093,U1036,53000.00,Unknown,Unknown Device,03:15,new,IMPS
+TXN094,U1064,810.00,Bangalore,Pixel 5a,15:00,known,UPI
+TXN095,U1048,7000.00,Pune,iPhone 11 Pro,11:35,known,CARD
+TXN096,U1065,118000.00,Unknown,Unknown Device,02:20,new,IMPS
+TXN097,U1040,2600.00,Pune,Redmi Note 9,12:20,known,UPI
+TXN098,U1066,35000.00,Delhi,Samsung A53,10:00,known,NEFT
+TXN099,U1067,71000.00,Unknown,Unknown Device,04:48,new,NEFT
+TXN100,U1068,3300.00,Hyderabad,OnePlus 10T,13:45,known,UPI
+TXN101,U1069,59000.00,Unknown,Unknown Device,01:22,new,IMPS
+TXN102,U1016,66000.00,Unknown,Unknown Device,03:40,new,NEFT
+TXN103,U1050,16000.00,Hyderabad,OnePlus 9R,11:05,known,CARD
+TXN104,U1070,1050.00,Bangalore,Redmi Note 10S,14:10,known,UPI
+TXN105,U1071,49000.00,Mumbai,Unknown Device,02:50,new,IMPS
+TXN106,U1025,720.00,Unknown,Unknown Device,00:33,new,IMPS
+TXN107,U1053,2000.00,Chennai,Vivo Y12,12:35,known,UPI
+TXN108,U1072,82000.00,Unknown,Unknown Device,04:15,new,NEFT
+TXN109,U1045,47000.00,Unknown,Unknown Device,01:44,new,IMPS
+TXN110,U1073,6100.00,Delhi,Samsung A33,09:30,known,CARD
+TXN111,U1046,1100.00,Bangalore,Samsung A22,15:50,known,UPI
+TXN112,U1074,34000.00,Pune,Unknown Device,03:28,new,NEFT
+TXN113,U1055,490.00,Pune,iPhone SE 2,17:00,known,UPI
+TXN114,U1075,77000.00,Unknown,Unknown Device,00:50,new,IMPS
+TXN115,U1060,37000.00,Hyderabad,Unknown Device,02:10,new,NEFT
+TXN116,U1076,4500.00,Mumbai,iPhone 14 Pro,13:05,known,CARD
+TXN117,U1077,1600.00,Bangalore,Redmi Note 10,11:45,known,UPI
+TXN118,U1078,63000.00,Unknown,Unknown Device,04:35,new,IMPS
+TXN119,U1079,8900.00,Chennai,Vivo V25,10:25,known,NEFT
+TXN120,U1080,560.00,Pune,Realme Narzo 50,15:15,known,UPI
