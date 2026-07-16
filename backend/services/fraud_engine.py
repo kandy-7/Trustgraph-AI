@@ -20,17 +20,37 @@ def _aggregate_risk(
     identity_risk: int,
     behaviour_risk: int,
     threat_bonus: int,
-    threat_confidence: Optional[float]
+    threat_confidence: Optional[float],
+    ml_fraud_prob: int,
+    network_risk: int
 ) -> int:
-    """Combines all risk vectors into a final 0-100 score."""
-    base_score = max(telemetry_score, identity_risk, behaviour_risk)
+    """Combines all risk vectors into a final 0-100 score using weighted intelligence."""
     
-    # Add threat bonus if we have high confidence
-    if threat_confidence and threat_confidence > 80:
-        base_score += threat_bonus
-    elif threat_bonus > 0:
-        base_score += int(threat_bonus * 0.5)
-        
+    # 30% Rule Score (Telemetry)
+    # 20% Behaviour (Max of Identity and Behaviour drift)
+    # 30% ML Score
+    # 15% Correlation (Threat Bonus)
+    # 5% Graph Intelligence
+    
+    rule_score_weighted = (telemetry_score / 100.0) * 30
+    
+    max_beh = max(identity_risk, behaviour_risk)
+    beh_score_weighted = (max_beh / 100.0) * 20
+    
+    ml_score_weighted = (ml_fraud_prob / 100.0) * 30
+    
+    # Cap threat bonus contribution to 15 points
+    correlation_weighted = min((threat_bonus / 100.0) * 15, 15)
+    
+    graph_weighted = (network_risk / 100.0) * 5
+    
+    base_score = int(rule_score_weighted + beh_score_weighted + ml_score_weighted + correlation_weighted + graph_weighted)
+    
+    # If the ML model says it's definitely fraud (e.g. >90%) or Correlation says it's extraction, 
+    # we can dynamically boost. But let's stick to the base weighted sum first, plus a hard override if needed.
+    # The user wanted a weighted score. Let's multiply the sum by 100/100 to get a 0-100 score. 
+    # Wait, the weights sum to 100. So base_score is already 0-100!
+    
     return min(100, base_score)
 
 
@@ -82,7 +102,9 @@ def analyze_event(
     threat_confidence: Optional[float],
     attack_stage: Optional[str],
     threat_story: List[str],
-    threat_risk_bonus: int
+    threat_risk_bonus: int,
+    ml_analysis: dict,
+    graph_analysis: dict
 ) -> dict:
     """
     Risk Aggregator Pipeline
@@ -99,9 +121,15 @@ def analyze_event(
     if telemetry.impossible_travel_flag: telemetry_risk += 40
     if telemetry.device_trust_score < 40: telemetry_risk += 30
 
-    # 2. Aggregation
+    # 2. Aggregation (Weighted Intelligence)
     final_score = _aggregate_risk(
-        telemetry_risk, identity_risk, behaviour_risk, threat_risk_bonus, threat_confidence
+        telemetry_score=telemetry_risk, 
+        identity_risk=identity_risk, 
+        behaviour_risk=behaviour_risk, 
+        threat_bonus=threat_risk_bonus, 
+        threat_confidence=threat_confidence,
+        ml_fraud_prob=ml_analysis.get("ml_fraud_prob", 0),
+        network_risk=graph_analysis.get("network_risk", 0)
     )
     
     # 3. Decision
@@ -119,6 +147,15 @@ def analyze_event(
         reasons.append(f"VPN usage detected ({int(telemetry.vpn_probability*100)}% confidence)")
         
     reasons.extend(adaptive_reasons)
+    
+    if ml_analysis.get("is_anomaly"):
+        reasons.append("Highly anomalous behaviour detected compared to historical customer profile.")
+        
+    for feature in ml_analysis.get("top_features", []):
+        reasons.append(f"ML Intelligence: High risk indicator - {feature}")
+        
+    for finding in graph_analysis.get("graph_findings", []):
+        reasons.append(f"Graph Intelligence: {finding}")
 
     report: dict[str, Any] = {
         "event_id":           event_id,

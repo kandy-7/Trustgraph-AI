@@ -15,6 +15,9 @@ from backend.services.fraud_engine import analyze_event
 from backend.services.telemetry_engine import evaluate_telemetry
 from backend.services.adaptive_intelligence import evaluate_customer_intelligence
 from backend.services.threat_correlation import correlate_threats
+from backend.services.feature_engineering import extract_features
+from backend.services.intelligent_risk_engine import analyze_ml_risk
+from backend.services.graph_intelligence_engine import analyze_graph_intelligence
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +112,14 @@ def process_cyber_event(payload: CyberEventRequest, db: Session) -> dict:
         payload, recent_events
     )
 
-    # 5. Risk Aggregation
+    # 5. Feature Engineering & ML Intelligence (Phase 5)
+    features = extract_features(payload, telemetry_profile, user_profile, db)
+    ml_analysis = analyze_ml_risk(features)
+
+    # 6. Graph Intelligence Engine (Phase 6)
+    graph_analysis = analyze_graph_intelligence(payload, db)
+
+    # 7. Risk Aggregation
     event_dict = payload.model_dump()
     analysis = analyze_event(
         event=event_dict, 
@@ -121,7 +131,9 @@ def process_cyber_event(payload: CyberEventRequest, db: Session) -> dict:
         threat_confidence=threat_conf,
         attack_stage=attack_stage,
         threat_story=threat_story,
-        threat_risk_bonus=threat_bonus
+        threat_risk_bonus=threat_bonus,
+        ml_analysis=ml_analysis,
+        graph_analysis=graph_analysis
     )
     
     # 6. Persistence
