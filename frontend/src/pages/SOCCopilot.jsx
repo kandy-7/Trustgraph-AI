@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bot, User, Send, Sparkles, Zap, FileText, ShieldAlert, Clock, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../context/AppContext';
-import { copilotChat, copilotExplain, copilotReport } from '../services/api';
-import { USE_MOCK_DATA } from '../config';
+import { askCopilot } from '../services/groq';
 
 const QUICK_ACTIONS = [
   { label: 'Explain Incident',    icon: ShieldAlert, color: 'text-rose-400',   prompt: 'Explain the active incident and why it was flagged' },
@@ -30,7 +29,7 @@ const getResponse = (text) => {
 };
 
 export default function SOCCopilot() {
-  const { investigationCase } = useAppContext();
+  const { investigationCase, stats, liveEvents } = useAppContext();
   const [messages, setMessages] = useState([
     { role: 'assistant', content: "Hello — I'm your **TrustGraph AI SOC Copilot** powered by Gemini.\n\nI can explain incidents, generate compliance reports, reconstruct attack timelines, and recommend response actions.\n\nUse a quick action above or ask me anything." },
   ]);
@@ -43,34 +42,29 @@ export default function SOCCopilot() {
   const send = async (text) => {
     const value = (text ?? input).trim();
     if (!value) return;
-    setMessages(prev => [...prev, { role: 'user', content: value }]);
+
+    // Include this turn in the history we hand to the LLM (state updates are async).
+    const userMsg = { role: 'user', content: value };
+    const history = [...messages, userMsg];
+
+    setMessages(prev => [...prev, userMsg]);
     setInput('');
     setTyping(true);
 
     try {
-      let response;
-      if (!USE_MOCK_DATA) {
-        const lower = value.toLowerCase();
-        if (lower.includes('explain') && investigationCase) {
-          const res = await copilotExplain({ event_id: investigationCase?.id, incident: investigationCase });
-          response = res?.explanation || getResponse(value);
-        } else if (lower.includes('report')) {
-          const res = await copilotReport({ incident: investigationCase });
-          response = res?.report || getResponse(value);
-        } else {
-          const res = await copilotChat({ message: value, context: investigationCase });
-          response = res?.response || getResponse(value);
-        }
-      } else {
-        await new Promise(r => setTimeout(r, 900));
-        response = getResponse(value);
-      }
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-    } catch {
-      await new Promise(r => setTimeout(r, 900));
+      // Feed the live SOC context (posture + active case + telemetry) to Groq.
+      const reply = await askCopilot({
+        history,
+        context: { stats, investigationCase, liveEvents },
+      });
+      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+    } catch (err) {
+      // Never break the demo: fall back to the built-in canned response.
+      console.warn('[SOC Copilot] Groq call failed, using fallback:', err.message);
       setMessages(prev => [...prev, { role: 'assistant', content: getResponse(value) }]);
+    } finally {
+      setTyping(false);
     }
-    setTyping(false);
   };
 
   const formatMessage = (content) => {
