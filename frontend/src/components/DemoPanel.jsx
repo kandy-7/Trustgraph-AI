@@ -1,67 +1,83 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Play, Settings2 } from 'lucide-react';
+import { Play, Zap, X, ShieldCheck, KeyRound, Smartphone, UserX, Banknote, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const SCENARIOS = [
+  { name: 'Normal Customer', icon: ShieldCheck, tone: 'text-emerald-500', desc: 'Baseline healthy activity' },
+  { name: 'Account Takeover', icon: UserX, tone: 'text-rose-500', desc: 'Full ATO kill-chain', hot: true },
+  { name: 'SIM Swap', icon: Smartphone, tone: 'text-orange-500', desc: 'SIM replacement attack' },
+  { name: 'Credential Stuffing', icon: KeyRound, tone: 'text-amber-500', desc: 'Bulk login attempts' },
+  { name: 'Money Laundering', icon: Banknote, tone: 'text-violet-500', desc: 'Layering via mules' },
+  { name: 'UPI Fraud', icon: QrCode, tone: 'text-cyan-500', desc: 'Malicious UPI handle' },
+];
 
 export default function DemoPanel() {
   const { runSimulation } = useAppContext();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedMode, setSelectedMode] = useState('Account Takeover');
-
-  const modes = [
-    'Normal Customer',
-    'Account Takeover',
-    'SIM Swap',
-    'Credential Stuffing',
-    'Money Laundering',
-    'UPI Fraud'
-  ];
 
   return (
-    <div className="fixed bottom-6 right-80 mr-6 z-50">
+    <div className="fixed bottom-6 right-6 z-50 lg:right-[22rem]">
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 12, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute bottom-14 right-0 w-64 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden"
+            exit={{ opacity: 0, y: 12, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+            className="absolute bottom-16 right-0 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
-            <div className="p-3 bg-slate-900 border-b border-slate-700">
-              <h4 className="text-sm font-semibold text-white">Demo Mode</h4>
-            </div>
-            <div className="p-3">
-              <label className="block text-xs font-medium text-slate-400 mb-2">Simulate Attack</label>
-              <select 
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm text-white focus:ring-1 focus:ring-indigo-500 mb-4 outline-none"
-                value={selectedMode}
-                onChange={(e) => setSelectedMode(e.target.value)}
-              >
-                {modes.map(mode => (
-                  <option key={mode} value={mode}>{mode}</option>
-                ))}
-              </select>
-              <button 
-                onClick={() => {
-                  runSimulation(selectedMode);
-                  setIsOpen(false);
-                }}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center transition-colors text-sm"
-              >
-                <Play className="w-4 h-4 mr-2" fill="currentColor" />
-                Run Simulation
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-indigo-500" />
+                <h4 className="text-sm font-semibold text-slate-800">Attack Simulator</h4>
+              </div>
+              <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-700">
+                <X className="h-4 w-4" />
               </button>
+            </div>
+
+            <div className="max-h-[60vh] space-y-1.5 overflow-y-auto p-2">
+              {SCENARIOS.map((s) => (
+                <button
+                  key={s.name}
+                  onClick={() => {
+                    runSimulation(s.name);
+                    setIsOpen(false);
+                  }}
+                  className="group flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left transition-all hover:border-slate-200 hover:bg-slate-50"
+                >
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-slate-50">
+                    <s.icon className={`h-[18px] w-[18px] ${s.tone}`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-slate-800">
+                      {s.name}
+                      {s.hot && (
+                        <span className="rounded bg-rose-100 px-1 py-px text-[9px] font-bold uppercase text-rose-600">
+                          Demo
+                        </span>
+                      )}
+                    </div>
+                    <div className="truncate text-[11px] text-slate-400">{s.desc}</div>
+                  </div>
+                  <Play className="h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-indigo-500" fill="currentColor" />
+                </button>
+              ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+      <motion.button
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.94 }}
+        onClick={() => setIsOpen((v) => !v)}
+        className="grid h-14 w-14 place-items-center rounded-full bg-accent-gradient text-white shadow-glow focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+        title="Attack Simulator"
       >
-        <Settings2 className="w-6 h-6" />
-      </button>
+        {isOpen ? <X className="h-6 w-6" /> : <Zap className="h-6 w-6" />}
+      </motion.button>
     </div>
   );
 }

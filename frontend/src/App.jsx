@@ -15,31 +15,35 @@ import Reports from './pages/Reports'
 function App() {
   return (
     <Router>
-      <div className="flex h-screen bg-slate-900 text-slate-100 overflow-hidden font-sans">
+      <div className="flex h-screen overflow-hidden font-sans text-slate-700">
         <Sidebar />
-        
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <TopBar />
-          
-          <div className="flex-1 flex overflow-hidden">
-            <main className="flex-1 overflow-y-auto p-6 bg-slate-950">
-              <Routes>
-                <Route path="/" element={<Navigate to="/overview" replace />} />
-                <Route path="/overview" element={<Overview />} />
-                <Route path="/threat-intelligence" element={<ThreatIntelligence />} />
-                <Route path="/customer-360" element={<Customer360 />} />
-                <Route path="/investigations" element={<Investigations />} />
-                <Route path="/network-intelligence" element={<NetworkIntelligence />} />
-                <Route path="/soc-copilot" element={<SOCCopilot />} />
-                <Route path="/reports" element={<Reports />} />
-              </Routes>
+
+          <div className="flex flex-1 overflow-hidden">
+            <main className="relative flex-1 overflow-y-auto">
+              {/* faint grid overlay tying the workspace together */}
+              <div className="pointer-events-none absolute inset-0 bg-grid-faint opacity-60 [background-size:40px_40px]" />
+              <div className="relative p-6 lg:p-8">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/overview" replace />} />
+                  <Route path="/overview" element={<Overview />} />
+                  <Route path="/threat-intelligence" element={<ThreatIntelligence />} />
+                  <Route path="/customer-360" element={<Customer360 />} />
+                  <Route path="/investigations" element={<Investigations />} />
+                  <Route path="/network-intelligence" element={<NetworkIntelligence />} />
+                  <Route path="/soc-copilot" element={<SOCCopilot />} />
+                  <Route path="/reports" element={<Reports />} />
+                </Routes>
+              </div>
             </main>
-            
-            {/* The right-docked Live Event Stream */}
+
+            {/* Right-docked Live Event Stream */}
             <LiveEventStream />
           </div>
         </div>
-        
+
         <DemoPanel />
       </div>
     </Router>
