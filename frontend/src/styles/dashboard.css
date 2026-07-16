@@ -1,52 +1,52 @@
-/* Dashboard-specific overrides — light theme */
+/* Dashboard-specific overrides — dark cyber theme */
 .recharts-default-tooltip {
   border-radius: 12px !important;
-  border: 1px solid #e2e8f0 !important;
-  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid #1e293b !important;
+  background: rgba(15, 23, 42, 0.95) !important;
   backdrop-filter: blur(8px);
-  box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.25) !important;
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.6) !important;
   font-family: 'Inter', sans-serif !important;
+  color: #e2e8f0 !important;
 }
 .recharts-tooltip-label {
-  color: #64748b !important;
+  color: #94a3b8 !important;
   font-size: 11px !important;
 }
+.recharts-tooltip-item { color: #e2e8f0 !important; }
 .recharts-cartesian-axis-tick-value {
   font-size: 11px;
-  fill: #94a3b8;
+  fill: #475569;
 }
 .recharts-legend-item-text {
   font-size: 12px !important;
-  color: #64748b !important;
+  color: #94a3b8 !important;
+}
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(255,255,255,0.04) !important;
 }
 
-/* React Flow (Network graph) */
+/* React Flow — dark */
 .react-flow__node {
-  border-radius: 12px !important;
+  border-radius: 10px !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 12px;
   font-weight: 600;
-  box-shadow: 0 8px 20px -10px rgba(15, 23, 42, 0.35);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.6) !important;
 }
-.react-flow__edge-path {
-  stroke-width: 2;
-}
-.react-flow__edge-text {
-  fill: #475569;
-  font-size: 10px;
-  font-weight: 600;
-}
-.react-flow__edge-textbg {
-  fill: #ffffff;
-}
-.react-flow__attribution {
-  display: none;
-}
+.react-flow__edge-path { stroke-width: 2; }
+.react-flow__edge-text { fill: #64748b; font-size: 10px; font-weight: 600; }
+.react-flow__edge-textbg { fill: #0f172a; }
+.react-flow__attribution { display: none; }
+.react-flow__background { background: #020617; }
 .react-flow__controls-button {
-  background: #ffffff !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  fill: #475569 !important;
+  background: #0f172a !important;
+  border-bottom: 1px solid #1e293b !important;
+  fill: #64748b !important;
 }
 .react-flow__controls-button:hover {
-  background: #f1f5f9 !important;
+  background: #1e293b !important;
+  fill: #e2e8f0 !important;
 }
+.react-flow__handle { background: #334155 !important; border-color: #475569 !important; }
+.react-flow__minimap { background: #0f172a !important; }

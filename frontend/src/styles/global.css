@@ -1,15 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================================
-   TrustGraph AI — Light Banking Defense Design System
+   TrustGraph AI — Dark Cyber Defense Design System
    ============================================================ */
 
 @layer base {
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
 
   html {
     font-family: 'Inter', system-ui, sans-serif;
@@ -18,111 +18,86 @@
   }
 
   body {
-    color: #334155;
-    background-color: #f4f7fb;
-    background-image:
-      radial-gradient(48rem 32rem at 8% -6%, rgba(56, 189, 248, 0.10), transparent 60%),
-      radial-gradient(42rem 32rem at 100% 0%, rgba(139, 92, 246, 0.08), transparent 55%),
-      radial-gradient(40rem 30rem at 50% 120%, rgba(99, 102, 241, 0.06), transparent 60%);
-    background-attachment: fixed;
+    color: #e2e8f0;
+    background-color: #020617;
   }
 
-  ::-webkit-scrollbar {
-    width: 9px;
-    height: 9px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 999px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-    background-clip: padding-box;
-  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #334155; }
 
-  ::selection {
-    background: rgba(99, 102, 241, 0.18);
-    color: #1e1b4b;
-  }
+  ::selection { background: rgba(99,102,241,0.35); color: #e0e7ff; }
+
+  code, .font-mono { font-family: 'JetBrains Mono', monospace; }
 }
 
 @layer components {
-  /* ── Surfaces ─────────────────────────────────────────── */
+  /* ── Surfaces ──────────────────────────────────────── */
   .panel {
-    @apply relative rounded-2xl border border-slate-200/80 bg-white shadow-card;
+    @apply relative rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-sm;
   }
-  .panel-hover {
-    @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-card-hover;
-  }
-  /* subtle brand top-edge highlight */
   .panel-top::before {
     content: '';
     @apply pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-2xl;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.35), transparent);
+    background: linear-gradient(90deg, transparent, rgba(99,102,241,0.5), transparent);
+  }
+  .panel-hover {
+    @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-700 hover:shadow-indigo-500/5;
   }
 
-  /* ── Buttons ──────────────────────────────────────────── */
+  /* ── Buttons ───────────────────────────────────────── */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 focus:outline-none disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn text-white shadow-glow;
-    background-image: linear-gradient(135deg, #38bdf8 0%, #6366f1 55%, #8b5cf6 100%);
+    @apply btn text-white;
+    background-image: linear-gradient(135deg, #3b82f6 0%, #6366f1 55%, #8b5cf6 100%);
+    box-shadow: 0 6px 18px -6px rgba(99,102,241,0.45);
   }
-  .btn-primary:hover {
-    @apply brightness-105;
-  }
+  .btn-primary:hover { @apply brightness-110; }
   .btn-ghost {
-    @apply btn border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50;
+    @apply btn border border-slate-700 bg-slate-800/60 text-slate-300 hover:border-slate-600 hover:bg-slate-700/60;
   }
-  .btn-danger {
-    @apply btn bg-rose-500 text-white hover:bg-rose-600;
-  }
-  .btn-success {
-    @apply btn bg-emerald-500 text-white hover:bg-emerald-600;
-  }
+  .btn-danger  { @apply btn bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30; }
+  .btn-success { @apply btn bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30; }
 
-  /* ── Text helpers ─────────────────────────────────────── */
+  /* ── Text ──────────────────────────────────────────── */
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(120deg, #0ea5e9 0%, #6366f1 55%, #8b5cf6 100%);
+    background-image: linear-gradient(120deg, #38bdf8 0%, #6366f1 55%, #a78bfa 100%);
   }
   .eyebrow {
-    @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400;
+    @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500;
   }
 
-  /* ── Severity pills ───────────────────────────────────── */
+  /* ── Severity pills ────────────────────────────────── */
   .pill {
     @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide;
   }
-  .pill-critical {
-    @apply pill bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-200;
-  }
-  .pill-high {
-    @apply pill bg-orange-50 text-orange-600 ring-1 ring-inset ring-orange-200;
-  }
-  .pill-medium {
-    @apply pill bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-200;
-  }
-  .pill-low {
-    @apply pill bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-200;
-  }
-  .pill-info {
-    @apply pill bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-200;
-  }
-  .pill-neutral {
-    @apply pill bg-slate-100 text-slate-500 ring-1 ring-inset ring-slate-200;
+  .pill-critical { @apply pill bg-rose-500/15 text-rose-400 ring-1 ring-inset ring-rose-500/30; }
+  .pill-high     { @apply pill bg-orange-500/15 text-orange-400 ring-1 ring-inset ring-orange-500/30; }
+  .pill-medium   { @apply pill bg-amber-500/15 text-amber-400 ring-1 ring-inset ring-amber-500/30; }
+  .pill-low      { @apply pill bg-emerald-500/15 text-emerald-400 ring-1 ring-inset ring-emerald-500/30; }
+  .pill-info     { @apply pill bg-indigo-500/15 text-indigo-400 ring-1 ring-inset ring-indigo-500/30; }
+  .pill-neutral  { @apply pill bg-slate-700/50 text-slate-400 ring-1 ring-inset ring-slate-600/50; }
+
+  /* ── Skeleton ──────────────────────────────────────── */
+  .skeleton {
+    background: linear-gradient(90deg, #1e293b 25%, #0f172a 50%, #1e293b 75%);
+    background-size: 1000px 100%;
+    @apply rounded-lg;
+    animation: skeleton-shimmer 1.8s infinite linear;
   }
 
-  /* ── Skeleton ─────────────────────────────────────────── */
-  .skeleton {
-    background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 50%, #eef2f7 75%);
-    background-size: 1000px 100%;
-    @apply animate-shimmer rounded-lg;
+  /* ── Glass card ────────────────────────────────────── */
+  .glass-card {
+    @apply relative rounded-2xl border border-white/5 bg-white/[0.03] backdrop-blur-md;
   }
 }
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position:  1000px 0; }
+}
+

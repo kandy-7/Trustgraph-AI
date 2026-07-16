@@ -1,79 +1,104 @@
-import React from 'react';
-import { useAppContext } from '../context/AppContext';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, ShieldAlert, ShieldCheck, Radio } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 const SEV_STYLES = {
-  CRITICAL: { wrap: 'border-rose-200 bg-rose-50', bar: 'bg-rose-500', text: 'text-rose-600', Icon: ShieldAlert },
-  HIGH: { wrap: 'border-orange-200 bg-orange-50', bar: 'bg-orange-500', text: 'text-orange-600', Icon: ShieldAlert },
-  MEDIUM: { wrap: 'border-amber-200 bg-amber-50', bar: 'bg-amber-400', text: 'text-amber-600', Icon: ShieldCheck },
-  LOW: { wrap: 'border-slate-200 bg-slate-50', bar: 'bg-slate-400', text: 'text-slate-500', Icon: ShieldCheck },
+  CRITICAL: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+  HIGH:     'text-orange-400 bg-orange-500/10 border-orange-500/30',
+  MEDIUM:   'text-amber-400 bg-amber-500/10 border-amber-500/30',
+  LOW:      'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
+  BLOCKED:  'text-rose-500 bg-rose-500/20 border-rose-500/50',
+};
+
+const TYPE_LABELS = {
+  FAILED_LOGIN:    '🔒 Failed Login',
+  VPN_LOGIN:       '🌐 VPN Login',
+  LOGIN:           '✅ Login',
+  DEVICE_CHANGE:   '📱 Device Change',
+  SIM_SWAP:        '📡 SIM Swap',
+  PASSWORD_RESET:  '🔑 Password Reset',
+  BENEFICIARY_ADDED: '👤 New Beneficiary',
+  TRANSFER:        '💸 Transfer',
+  ALERT:           '🚨 Alert',
+  EVENT:           '📋 Event',
 };
 
 export default function LiveEventStream() {
   const { liveEvents } = useAppContext();
+  const [ticker, setTicker] = useState(0);
+
+  // Update "last updated" clock
+  useEffect(() => {
+    const id = setInterval(() => setTicker(t => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const secondsAgo = ticker; // reset when events change
 
   return (
-    <aside className="hidden w-80 shrink-0 flex-col border-l border-slate-200 bg-white/70 backdrop-blur-xl lg:flex">
-      {/* Header with scan-line */}
-      <div className="relative flex h-16 items-center justify-between overflow-hidden border-b border-slate-200 px-4">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-8 animate-scan bg-gradient-to-b from-cyan-200/40 to-transparent" />
-        <div className="relative flex items-center gap-2">
-          <Activity className="h-[18px] w-[18px] animate-pulse text-indigo-500" />
-          <h3 className="text-sm font-semibold text-slate-800">Live Event Stream</h3>
+    <div className="hidden w-72 shrink-0 flex-col border-l border-slate-800 bg-slate-950 xl:flex">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Live Events</span>
         </div>
-        <span className="relative inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-          <Radio className="h-3 w-3 animate-pulse" /> Live
+        <span className="text-[10px] text-slate-600">
+          {liveEvents.length > 0 ? 'Live' : 'Waiting…'}
         </span>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+      {/* Stream */}
+      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1.5">
         <AnimatePresence initial={false}>
-          {liveEvents.map((event, i) => {
-            const s = SEV_STYLES[event.severity] || SEV_STYLES.LOW;
-            return (
-              <motion.div
-                key={`${event.time}-${event.type}-${i}`}
-                layout
-                initial={{ opacity: 0, y: -16, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className={`relative overflow-hidden rounded-xl border p-3 pl-4 ${s.wrap}`}
-              >
-                <div className={`absolute inset-y-0 left-0 w-1 ${s.bar}`} />
-
-                <div className="mb-1 flex items-center justify-between">
-                  <span className="font-mono text-[11px] text-slate-400">{event.time}</span>
-                  {event.status === 'BLOCKED' && (
-                    <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-rose-600">
-                      Blocked
-                    </span>
-                  )}
-                </div>
-
-                <div className="text-sm font-semibold text-slate-800">
-                  {event.type.replace(/_/g, ' ')}
-                </div>
-                <div className={`mt-1 flex items-center gap-1 text-xs ${s.text}`}>
-                  <s.Icon className="h-3 w-3" />
-                  {event.msg}
-                </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-
-        {liveEvents.length === 0 && (
-          <div className="flex flex-col items-center justify-center pt-20 text-center">
-            <div className="mb-3 grid h-12 w-12 place-items-center rounded-full border border-slate-200 bg-slate-50">
-              <Radio className="h-5 w-5 text-slate-400" />
+          {liveEvents.length === 0 ? (
+            <div className="mt-8 text-center text-xs text-slate-600">
+              <div className="mb-2 text-2xl">⚡</div>
+              Run a simulation to see live events stream here
             </div>
-            <p className="text-sm text-slate-500">Monitoring telemetry…</p>
-            <p className="mt-1 text-xs text-slate-400">Run a simulation to see live events</p>
-          </div>
-        )}
+          ) : (
+            liveEvents.map((evt, i) => {
+              const sev = evt.status === 'BLOCKED' ? 'BLOCKED' : (evt.severity || 'LOW');
+              const style = SEV_STYLES[sev] || SEV_STYLES.LOW;
+              const label = TYPE_LABELS[evt.type] || evt.type;
+              return (
+                <motion.div
+                  key={`${evt.time}-${i}`}
+                  initial={{ opacity: 0, x: 30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className={`rounded-lg border px-3 py-2.5 ${style}`}
+                >
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="font-mono text-[10px] opacity-60">{evt.time}</span>
+                    <span className={`text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${
+                      sev === 'BLOCKED' ? 'bg-rose-500 text-white' : 'bg-current/10'
+                    }`}>
+                      {sev === 'BLOCKED' ? 'BLOCKED' : sev}
+                    </span>
+                  </div>
+                  <div className="text-xs font-semibold">{label}</div>
+                  {evt.msg && <div className="text-[10px] opacity-60 mt-0.5 truncate">{evt.msg}</div>}
+                </motion.div>
+              );
+            })
+          )}
+        </AnimatePresence>
       </div>
-    </aside>
+
+      {/* Footer stats */}
+      <div className="border-t border-slate-800 px-4 py-3 grid grid-cols-2 gap-3">
+        <div>
+          <div className="text-[10px] text-slate-600 uppercase tracking-wide">Events</div>
+          <div className="text-sm font-bold text-slate-300">{liveEvents.length}</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-slate-600 uppercase tracking-wide">Blocked</div>
+          <div className="text-sm font-bold text-rose-400">
+            {liveEvents.filter(e => e.status === 'BLOCKED' || e.severity === 'CRITICAL').length}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

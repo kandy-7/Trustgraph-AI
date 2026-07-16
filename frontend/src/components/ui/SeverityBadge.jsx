@@ -1,15 +1,18 @@
 import React from 'react';
 
-const MAP = {
-  CRITICAL: 'pill-critical',
-  HIGH: 'pill-high',
-  MEDIUM: 'pill-medium',
-  LOW: 'pill-low',
-  INFO: 'pill-info',
+const LEVELS = {
+  CRITICAL: 'bg-rose-500/20 text-rose-400 border border-rose-500/30',
+  HIGH:     'bg-orange-500/20 text-orange-400 border border-orange-500/30',
+  MEDIUM:   'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+  LOW:      'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+  INFO:     'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30',
 };
 
-/** Small severity chip. Accepts CRITICAL | HIGH | MEDIUM | LOW | INFO. */
-export default function SeverityBadge({ level = 'LOW', children }) {
-  const cls = MAP[String(level).toUpperCase()] || 'pill-neutral';
-  return <span className={cls}>{children || level}</span>;
+export default function SeverityBadge({ level = 'LOW' }) {
+  const cls = LEVELS[level?.toUpperCase()] || LEVELS.LOW;
+  return (
+    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${cls}`}>
+      {level}
+    </span>
+  );
 }

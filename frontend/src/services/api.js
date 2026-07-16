@@ -1,72 +1,77 @@
 import axios from 'axios'
-
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+import { API_BASE, USE_MOCK_DATA } from '../config'
 
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_BASE,
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' },
 })
 
-// Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('tg_token')
-    if (token) config.headers.Authorization = `Bearer ${token}`
-    return config
-  },
-  (error) => Promise.reject(error)
-)
-
-// Response interceptor
 api.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    console.error('[TrustGraph API]', error.response?.status, error.message)
-    return Promise.reject(error)
+  (res) => res.data,
+  (err) => {
+    console.warn('[TrustGraph API]', err.response?.status, err.message)
+    return Promise.reject(err)
   }
 )
 
-// ── Transactions ────────────────────────────────────────────────
-export const getTransactions = (params = {}) =>
-  api.get('/transactions', { params })
+// ── Dashboard ──────────────────────────────────────────────────────
+export const getDashboardOverview = () =>
+  USE_MOCK_DATA ? Promise.resolve(null) : api.get('/dashboard/overview')
 
-export const getTransactionById = (id) =>
-  api.get(`/transactions/${id}`)
+export const getLiveEvents = () =>
+  USE_MOCK_DATA ? Promise.resolve([]) : api.get('/dashboard/live-events')
 
-// ── Fraud Alerts ─────────────────────────────────────────────────
-export const getFraudAlerts = (params = {}) =>
-  api.get('/alerts', { params })
+export const getDashboardThreats = () =>
+  USE_MOCK_DATA ? Promise.resolve(null) : api.get('/dashboard/threats')
 
-export const getAlertById = (id) =>
-  api.get(`/alerts/${id}`)
+// ── Alerts ─────────────────────────────────────────────────────────
+export const getAlerts = (params = {}) =>
+  USE_MOCK_DATA ? Promise.resolve([]) : api.get('/alerts', { params })
 
 export const updateAlertStatus = (id, status) =>
   api.patch(`/alerts/${id}`, { status })
 
-// ── Risk Analysis ─────────────────────────────────────────────────
-export const getRiskScore = (accountId) =>
-  api.get(`/risk/${accountId}`)
+// ── Customers ──────────────────────────────────────────────────────
+export const getCustomer = (id) =>
+  USE_MOCK_DATA ? Promise.resolve(null) : api.get(`/customers/${id}`)
 
-export const getRiskTrend = (params = {}) =>
-  api.get('/risk/trend', { params })
+export const getCustomerTimeline = (id) =>
+  USE_MOCK_DATA ? Promise.resolve([]) : api.get(`/customers/${id}/timeline`)
 
-// ── Graph ─────────────────────────────────────────────────────────
-export const getGraphData = () =>
-  api.get('/graph')
+export const getCustomerAlerts = (id) =>
+  USE_MOCK_DATA ? Promise.resolve([]) : api.get(`/customers/${id}/alerts`)
 
-// ── Officer Panel ─────────────────────────────────────────────────
-export const getCases = () =>
-  api.get('/cases')
+export const getCustomerDevices = (id) =>
+  USE_MOCK_DATA ? Promise.resolve([]) : api.get(`/customers/${id}/devices`)
 
-export const updateCase = (id, payload) =>
-  api.patch(`/cases/${id}`, payload)
+// ── Network ────────────────────────────────────────────────────────
+export const getNetworkGraph = () =>
+  USE_MOCK_DATA ? Promise.resolve(null) : api.get('/network')
 
-export const addCaseNote = (id, note) =>
-  api.post(`/cases/${id}/notes`, { note })
+// ── Explainability ─────────────────────────────────────────────────
+export const getDecisionIntelligence = (eventId) =>
+  USE_MOCK_DATA ? Promise.resolve(null) : api.get(`/explain/${eventId}`)
+
+// ── Reports ───────────────────────────────────────────────────────
+export const getReportsSummary = () =>
+  USE_MOCK_DATA ? Promise.resolve(null) : api.get('/reports/summary')
+
+export const getIncidentReport = (eventId, format = 'json') =>
+  api.get(`/reports/incident/${eventId}`, { params: { format } })
+
+// ── SOC Copilot ───────────────────────────────────────────────────
+export const copilotChat = (payload) =>
+  api.post('/copilot/chat', payload)
+
+export const copilotExplain = (payload) =>
+  api.post('/copilot/explain', payload)
+
+export const copilotReport = (payload) =>
+  api.post('/copilot/report', payload)
 
 // ── Simulator ─────────────────────────────────────────────────────
-export const runSimulation = (type) =>
-  api.post('/simulate', { type })
+export const runLiveSimulation = (scenario = 'ALL') =>
+  api.post(`/simulate?scenario=${scenario}`)
 
 export default api
