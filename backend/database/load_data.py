@@ -26,8 +26,8 @@ if str(_PROJECT_ROOT) not in sys.path:
 # ─────────────────────────────────────────────────────────────────────────────
 
 from backend.database.db import SessionLocal, init_db
-from backend.database.models import (
-    Transaction, UserProfile, BlacklistedAccount, FraudPattern
+from backend.models.db_models import (
+    Transaction, CyberEvent, FraudAlert, UserProfile, BlacklistedAccount, FraudPattern
 )
 from backend.database.validators import check_required_columns, validate_row
 

@@ -30,8 +30,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from backend.database.models import (
-    Transaction, UserProfile, BlacklistedAccount, FraudPattern, FraudLog
+from backend.models.db_models import (
+    Transaction, FraudAlert, UserProfile, BlacklistedAccount, FraudPattern, FraudLog
 )
 
 

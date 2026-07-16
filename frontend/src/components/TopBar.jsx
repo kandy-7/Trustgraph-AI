@@ -1,93 +1,55 @@
-import React, { useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Bell, Search, ChevronRight, Settings } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-
-const crumbMap = {
-  '/dashboard': ['Dashboard'],
-  '/live-monitoring': ['Live Monitoring'],
-  '/fraud-analysis': ['Fraud Analysis'],
-  '/graph-analysis': ['Graph Analysis'],
-  '/officer-panel': ['Officer Panel'],
-  '/fraud-simulator': ['Fraud Simulator'],
-}
-
-const ALERTS = [
-  { id: 1, msg: 'Critical: SIM Swap detected on ACC-7823', time: '2m ago', color: 'text-red-500' },
-  { id: 2, msg: 'High: Unusual UPI spike — ACC-4421', time: '5m ago', color: 'text-amber-500' },
-  { id: 3, msg: 'Medium: Multiple failed logins — ACC-9910', time: '12m ago', color: 'text-sky-500' },
-]
+import React, { useState, useEffect } from 'react';
+import { Search, Bell, User, Clock } from 'lucide-react';
 
 export default function TopBar() {
-  const { pathname } = useLocation()
-  const [showNotifs, setShowNotifs] = useState(false)
-  const crumbs = crumbMap[pathname] || []
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <header className="h-14 shrink-0 bg-white border-b border-gray-100 flex items-center px-6 gap-4 z-10">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-sm">
-        <span className="text-gray-400 font-medium">TrustGraph AI</span>
-        {crumbs.map((c) => (
-          <React.Fragment key={c}>
-            <ChevronRight size={13} className="text-gray-300" />
-            <span className="text-gray-700 font-semibold">{c}</span>
-          </React.Fragment>
-        ))}
+    <div className="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-10">
+      
+      {/* Global Search */}
+      <div className="flex-1 max-w-xl">
+        <div className="relative group">
+          <Search className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-indigo-400 transition-colors" />
+          <input 
+            type="text" 
+            placeholder="Search User, Account, Device, Transaction, IP, Case..." 
+            className="w-full bg-slate-950/50 border border-slate-800 text-slate-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+          />
+        </div>
       </div>
 
-      <div className="flex-1" />
+      <div className="flex items-center space-x-6">
+        {/* Time */}
+        <div className="flex items-center text-slate-400 text-sm">
+          <Clock className="w-4 h-4 mr-2" />
+          {time.toLocaleTimeString()}
+        </div>
 
-      {/* Search */}
-      <div className="relative hidden md:block">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          className="pl-8 pr-4 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-xl w-52 focus:outline-none focus:ring-2 focus:ring-sky-200 placeholder-gray-400 transition"
-          placeholder="Search transactions..."
-        />
+        {/* Notifications */}
+        <div className="relative">
+          <button className="p-2 text-slate-400 hover:text-white transition-colors relative">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+          </button>
+        </div>
+
+        {/* Analyst Profile */}
+        <div className="flex items-center pl-6 border-l border-slate-800">
+          <div className="flex flex-col items-end mr-3">
+            <span className="text-sm font-medium text-white">Analyst</span>
+            <span className="text-xs text-slate-500">SOC Tier 2</span>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold">
+            JD
+          </div>
+        </div>
       </div>
-
-      {/* Notification bell */}
-      <div className="relative">
-        <button
-          onClick={() => setShowNotifs((v) => !v)}
-          className="relative p-2 rounded-xl hover:bg-gray-50 transition"
-        >
-          <Bell size={18} className="text-gray-500" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-        </button>
-        <AnimatePresence>
-          {showNotifs && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="absolute right-0 top-full mt-2 w-80 glass-card shadow-card-hover z-50 p-4"
-            >
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Recent Alerts</p>
-              <div className="space-y-3">
-                {ALERTS.map((a) => (
-                  <div key={a.id} className="flex items-start gap-3">
-                    <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${a.color.replace('text-', 'bg-')}`} />
-                    <div>
-                      <p className="text-xs text-gray-700">{a.msg}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{a.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      <button className="p-2 rounded-xl hover:bg-gray-50 transition">
-        <Settings size={18} className="text-gray-500" />
-      </button>
-
-      <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 text-xs font-bold cursor-pointer">
-        A
-      </div>
-    </header>
-  )
+    </div>
+  );
 }

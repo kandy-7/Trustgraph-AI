@@ -41,6 +41,7 @@ from backend.config import APP_NAME, APP_VERSION, APP_DESCRIPTION, DEBUG, CORS_O
 from backend.database import init_db
 from backend.routes import (
     transaction_router,
+    events_router,
     alerts_router,
     simulation_router,
     graph_router,
@@ -99,6 +100,7 @@ app.add_middleware(
 # Routers
 # ──────────────────────────────────────────────
 app.include_router(transaction_router)
+app.include_router(events_router)
 app.include_router(alerts_router)
 app.include_router(simulation_router)
 app.include_router(graph_router)

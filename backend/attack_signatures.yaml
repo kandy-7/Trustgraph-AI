@@ -1,0 +1,62 @@
+# TrustGraph AI - Attack Signatures
+# Defines multi-stage SOC threat correlation sequences.
+
+signatures:
+  - id: "account_takeover"
+    name: "Account Takeover"
+    description: "Attacker compromises credentials, bypasses MFA/SIM, and extracts funds."
+    severity: "CRITICAL"
+    base_confidence: 90
+    stages:
+      - "Credential Abuse"
+      - "Identity Compromise"
+      - "Persistence"
+      - "Money Extraction"
+    sequence:
+      - event_type: "FAILED_LOGIN"
+        optional: true
+      - event_type: "LOGIN"
+      - event_type: "DEVICE_CHANGE"
+        optional: true
+      - event_type: "SIM_SWAP"
+        optional: true
+      - event_type: "PASSWORD_CHANGE"
+        optional: true
+      - event_type: "BENEFICIARY_ADDED"
+        optional: true
+      - event_type: "TRANSFER"
+    minimum_events: 3
+    risk_bonus: 40
+
+  - id: "mule_network"
+    name: "Mule Network Dropoff"
+    description: "Rapid receiving and forwarding of funds."
+    severity: "HIGH"
+    base_confidence: 85
+    stages:
+      - "Money In"
+      - "Layering"
+      - "Money Out"
+    sequence:
+      - event_type: "LOGIN"
+        optional: true
+      - event_type: "BENEFICIARY_ADDED"
+      - event_type: "TRANSFER"
+      - event_type: "TRANSFER"
+        optional: true
+    minimum_events: 2
+    risk_bonus: 30
+
+  - id: "credential_stuffing"
+    name: "Credential Stuffing / Brute Force"
+    description: "Automated rapid login attempts."
+    severity: "MEDIUM"
+    base_confidence: 95
+    stages:
+      - "Reconnaissance"
+      - "Credential Abuse"
+    sequence:
+      - event_type: "FAILED_LOGIN"
+      - event_type: "FAILED_LOGIN"
+    minimum_events: 2
+    risk_bonus: 20

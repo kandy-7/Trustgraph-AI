@@ -74,5 +74,5 @@ def init_db():
     Create all tables declared in models.py if they don't already exist.
     Call once at application startup.
     """
-    from backend.database import models  # noqa: F401 – registers metadata
+    from backend.models import db_models  # noqa: F401 – registers metadata
     Base.metadata.create_all(bind=engine)

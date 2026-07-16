@@ -4,8 +4,12 @@ import App from './App.jsx'
 import './styles/global.css'
 import './styles/dashboard.css'
 
+import { AppProvider } from './context/AppContext.jsx'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <AppProvider>
+      <App />
+    </AppProvider>
   </React.StrictMode>,
 )

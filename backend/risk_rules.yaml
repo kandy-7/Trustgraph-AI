@@ -1,0 +1,62 @@
+# TrustGraph AI - Externalized Risk Rules Configuration
+# Used by the Cyber Risk Engine & Fraud Engine to evaluate events.
+
+telemetry_rules:
+  vpn_usage:
+    threshold_probability: 0.80
+    risk_weight: 20
+    reason_template: "VPN detected (confidence {confidence}%)"
+
+  emulator_usage:
+    threshold_probability: 0.70
+    risk_weight: 30
+    reason_template: "Emulator detected (confidence {confidence}%)"
+
+  malware_detected:
+    threshold_score: 0.50
+    risk_weight: 80
+    reason_template: "Malware signature found (score {score})"
+
+  rooted_device:
+    threshold_score: 0.70
+    risk_weight: 50
+    reason_template: "Jailbroken or rooted device detected"
+
+  impossible_travel:
+    required_speed_kmh: 900
+    risk_weight: 40
+    reason_template: "Impossible travel detected ({distance} km in {minutes} min)"
+
+  device_trust:
+    low_trust_threshold: 40
+    risk_weight: 25
+    reason_template: "Low device trust score ({score}/100)"
+
+fraud_rules:
+  high_amount:
+    threshold: 50000
+    risk_weight: 30
+    reason_template: "High transaction amount (₹{amount})"
+    
+  velocity_spike:
+    multiplier: 10
+    risk_weight: 20
+    reason_template: "Velocity spike: {multiplier}x historical average"
+    
+  new_beneficiary:
+    risk_weight: 20
+    reason_template: "First-time transfer to this recipient"
+    
+  midnight_login:
+    start_hour: 0
+    end_hour: 4
+    risk_weight: 20
+    reason_template: "Suspicious login time ({time})"
+    
+  location_anomaly:
+    risk_weight: 15
+    reason_template: "Transaction from unusual location ({location})"
+    
+  historical_fraud:
+    risk_weight: 30
+    reason_template: "Transaction bears a ground-truth fraud label"

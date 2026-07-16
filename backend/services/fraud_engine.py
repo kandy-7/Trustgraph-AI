@@ -1,203 +1,142 @@
 """
-TrustGraph AI - Behavioral Fraud Detection Engine
-Modular, rule-based + behavioral fraud detection for real-time risk intelligence.
+TrustGraph AI - Risk Aggregator & Decision Engine
+Combines multi-vector risks (Telemetry, Identity, Behaviour, Threat Correlation) 
+into a final SOC-ready Customer Risk Score.
 """
 
 from __future__ import annotations
 import logging
 from datetime import datetime
-from typing import Any
+from typing import Any, List, Optional
 
-from backend.config import (
-    RISK_LOW_MAX, RISK_MEDIUM_MAX,
-    HIGH_AMOUNT_THRESHOLD,
-    MIDNIGHT_HOUR_START, MIDNIGHT_HOUR_END
-)
+from backend.config import RISK_LOW_MAX, RISK_MEDIUM_MAX
+from backend.models.schemas import TelemetryData
 
 logger = logging.getLogger(__name__)
 
 
-# ══════════════════════════════════════════════════════════
-# Rule Definitions
-# ══════════════════════════════════════════════════════════
-
-RULES: list[dict[str, Any]] = [
-    {
-        "id":     "high_amount",
-        "label":  "High Transaction Amount",
-        "weight": 30,
-        "description": f"Amount exceeds ₹{HIGH_AMOUNT_THRESHOLD:,}"
-    },
-    {
-        "id":     "unknown_device",
-        "label":  "Untrusted / Unknown Device",
-        "weight": 25,
-        "description": "Transaction from unrecognised device"
-    },
-    {
-        "id":     "new_beneficiary",
-        "label":  "New Beneficiary",
-        "weight": 20,
-        "description": "First-time transfer to this recipient"
-    },
-    {
-        "id":     "midnight_login",
-        "label":  "Suspicious Login Time",
-        "weight": 20,
-        "description": f"Login between {MIDNIGHT_HOUR_START:02d}:00 – {MIDNIGHT_HOUR_END:02d}:59"
-    },
-    {
-        "id":     "historical_fraud",
-        "label":  "Historical Fraud Signal",
-        "weight": 30,
-        "description": "Transaction bears a ground-truth fraud label"
-    },
-    {
-        "id":     "location_anomaly",
-        "label":  "Location Anomaly",
-        "weight": 15,
-        "description": "Transaction location differs from user's usual region"
-    },
-    {
-        "id":     "velocity_spike",
-        "label":  "Velocity Spike",
-        "weight": 20,
-        "description": "Amount is ≥10× the user's historical average"
-    },
-]
+def _aggregate_risk(
+    telemetry_score: int,
+    identity_risk: int,
+    behaviour_risk: int,
+    threat_bonus: int,
+    threat_confidence: Optional[float]
+) -> int:
+    """Combines all risk vectors into a final 0-100 score."""
+    base_score = max(telemetry_score, identity_risk, behaviour_risk)
+    
+    # Add threat bonus if we have high confidence
+    if threat_confidence and threat_confidence > 80:
+        base_score += threat_bonus
+    elif threat_bonus > 0:
+        base_score += int(threat_bonus * 0.5)
+        
+    return min(100, base_score)
 
 
-# ══════════════════════════════════════════════════════════
-# Core Scoring
-# ══════════════════════════════════════════════════════════
+def classify_risk_and_action(score: int, threat_name: Optional[str], attack_stage: Optional[str]) -> dict[str, Any]:
+    """Map numeric score → severity, SOC response action, and alert status."""
+    
+    if threat_name and attack_stage == "Money Extraction":
+        # Hard block if we are highly confident they are extracting funds
+        return {
+            "risk_level":         "CRITICAL",
+            "recommended_action": "Freeze Account",
+            "suggested_step":     "Escalate to SOC, Notify Customer immediately",
+            "alert":              True,
+            "severity":           "CRITICAL"
+        }
 
-def _apply_rules(transaction: dict, user_profile: dict | None = None) -> tuple[int, list[str]]:
-    """
-    Evaluate each rule against the transaction and optional behavioral profile.
-    Returns total score (capped at 100) and list of triggered rule IDs.
-    """
-    score = 0
-    triggered: list[str] = []
-
-    # Rule 1 – High Amount
-    amount = float(transaction.get("TransactionAmt", 0))
-    if amount > HIGH_AMOUNT_THRESHOLD:
-        score += 30
-        triggered.append("high_amount")
-
-    # Rule 2 – Unknown Device
-    if not transaction.get("trusted_device", True):
-        score += 25
-        triggered.append("unknown_device")
-
-    # Rule 3 – New Beneficiary
-    if transaction.get("beneficiary_type") == "new":
-        score += 20
-        triggered.append("new_beneficiary")
-
-    # Rule 4 – Midnight Login
-    login_raw = transaction.get("login_time", "12:00")
-    try:
-        hour = int(str(login_raw).split(":")[0])
-        if MIDNIGHT_HOUR_START <= hour <= MIDNIGHT_HOUR_END:
-            score += 20
-            triggered.append("midnight_login")
-    except (ValueError, AttributeError):
-        logger.warning("Could not parse login_time: %s", login_raw)
-
-    # Rule 5 – Historical Fraud Label
-    if int(transaction.get("isFraud", 0)) == 1:
-        score += 30
-        triggered.append("historical_fraud")
-
-    # Rule 6 – Location Anomaly (needs profile)
-    if user_profile:
-        usual_loc = (user_profile.get("usual_location") or "").lower()
-        curr_loc  = (transaction.get("location") or "").lower()
-        if usual_loc and curr_loc and usual_loc not in curr_loc and curr_loc != "unknown":
-            score += 15
-            triggered.append("location_anomaly")
-
-        # Rule 7 – Velocity Spike (needs profile)
-        avg = float(user_profile.get("avg_amount", 0) or 0)
-        if avg > 0 and amount >= avg * 10:
-            score += 20
-            triggered.append("velocity_spike")
-
-    return min(score, 100), triggered
-
-
-# ══════════════════════════════════════════════════════════
-# Risk Classification
-# ══════════════════════════════════════════════════════════
-
-def classify_risk(score: int) -> dict[str, Any]:
-    """Map numeric score → risk band + recommended action."""
     if score <= RISK_LOW_MAX:
         return {
             "risk_level":         "LOW",
             "recommended_action": "ALLOW",
-            "alert":              False
+            "alert":              False,
+            "severity":           "LOW"
         }
     elif score <= RISK_MEDIUM_MAX:
         return {
             "risk_level":         "MEDIUM",
             "recommended_action": "VERIFY",
-            "suggested_step":     "OTP re-verification required",
-            "alert":              True
+            "suggested_step":     "Step-up MFA / OTP required",
+            "alert":              True,
+            "severity":           "MEDIUM"
         }
     else:
         return {
             "risk_level":         "HIGH",
             "recommended_action": "BLOCK",
-            "suggested_step":     "Escalate to fraud investigation team",
-            "alert":              True
+            "suggested_step":     "Soft hold, escalate to investigation team",
+            "alert":              True,
+            "severity":           "HIGH"
         }
 
 
-# ══════════════════════════════════════════════════════════
-# Public API
-# ══════════════════════════════════════════════════════════
-
-def analyze_transaction(transaction: dict, user_profile: dict | None = None) -> dict:
+def analyze_event(
+    event: dict, 
+    telemetry: TelemetryData, 
+    identity_risk: int,
+    behaviour_risk: int,
+    adaptive_reasons: List[str],
+    threat_name: Optional[str],
+    threat_confidence: Optional[float],
+    attack_stage: Optional[str],
+    threat_story: List[str],
+    threat_risk_bonus: int
+) -> dict:
     """
-    Main entry point.
-    Validates → scores → classifies → returns full analysis report.
-
-    Args:
-        transaction:  Raw transaction payload dict (matches TransactionRequest).
-        user_profile: Optional behavioral baseline for the user.
-
-    Returns:
-        Analysis report dict (matches TransactionResponse).
+    Risk Aggregator Pipeline
+    Combines everything into the final SOC-ready payload.
     """
-    txn_id  = transaction.get("TransactionID", "UNKNOWN")
-    user_id = transaction.get("user_id", "UNKNOWN")
+    event_id = event.get("event_id", "UNKNOWN")
+    user_id = event.get("user_id", "UNKNOWN")
 
-    # ── Validation ──────────────────────────────────────
-    required = ["TransactionID", "user_id", "TransactionAmt"]
-    missing  = [f for f in required if f not in transaction]
-    if missing:
-        logger.error("Transaction %s rejected – missing fields: %s", txn_id, missing)
-        return {
-            "error":          "Missing required fields",
-            "missing_fields": missing,
-            "status":         "FAILED"
-        }
+    # 1. Base telemetry risk (derived from device trust, vpn, etc.)
+    telemetry_risk = 0
+    if telemetry.vpn_probability > 0.8: telemetry_risk += 20
+    if telemetry.malware_score > 0.5: telemetry_risk += 80
+    if telemetry.rooted_score > 0.7: telemetry_risk += 50
+    if telemetry.impossible_travel_flag: telemetry_risk += 40
+    if telemetry.device_trust_score < 40: telemetry_risk += 30
 
-    # ── Score ────────────────────────────────────────────
-    score, reasons = _apply_rules(transaction, user_profile)
+    # 2. Aggregation
+    final_score = _aggregate_risk(
+        telemetry_risk, identity_risk, behaviour_risk, threat_risk_bonus, threat_confidence
+    )
+    
+    # 3. Decision
+    classification = classify_risk_and_action(final_score, threat_name, attack_stage)
 
-    # ── Classify ─────────────────────────────────────────
-    classification = classify_risk(score)
+    # 4. Compile reasons for explainability
+    reasons = []
+    if threat_name:
+        reasons.append(f"Threat detected: {threat_name} ({int(threat_confidence or 0)}% confidence)")
+        reasons.append(f"Attack Stage: {attack_stage}")
+    
+    if telemetry.impossible_travel_flag:
+        reasons.append("Impossible travel detected")
+    if telemetry.vpn_probability > 0.8:
+        reasons.append(f"VPN usage detected ({int(telemetry.vpn_probability*100)}% confidence)")
+        
+    reasons.extend(adaptive_reasons)
 
-    # ── Build Report ─────────────────────────────────────
     report: dict[str, Any] = {
-        "transaction_id":     txn_id,
+        "event_id":           event_id,
         "user_id":            user_id,
-        "amount":             float(transaction.get("TransactionAmt", 0)),
-        "risk_score":         score,
+        "event_type":         event.get("event_type"),
+        
+        # Breakdown
+        "identity_risk":      identity_risk,
+        "behaviour_risk":     behaviour_risk,
+        "threat_name":        threat_name,
+        "threat_confidence":  threat_confidence,
+        "attack_stage":       attack_stage,
+        "threat_story":       threat_story,
+        
+        # Final Outcome
+        "risk_score":         final_score,
         "risk_level":         classification["risk_level"],
+        "severity":           classification["severity"],
         "alert":              classification["alert"],
         "recommended_action": classification["recommended_action"],
         "reasons":            reasons,
@@ -206,16 +145,4 @@ def analyze_transaction(transaction: dict, user_profile: dict | None = None) -> 
     if "suggested_step" in classification:
         report["suggested_step"] = classification["suggested_step"]
 
-    # ── Log ───────────────────────────────────────────────
-    log = logger.warning if report["risk_level"] == "HIGH" else logger.info
-    log(
-        "Transaction %s | User %s | Risk %s (%d/100) | Triggers: %s",
-        txn_id, user_id, report["risk_level"], score, reasons
-    )
-
     return report
-
-
-def get_rule_catalogue() -> list[dict]:
-    """Return the full list of fraud detection rules (for the /rules endpoint)."""
-    return RULES
