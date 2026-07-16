@@ -18,6 +18,8 @@ from backend.services.threat_correlation import correlate_threats
 from backend.services.feature_engineering import extract_features
 from backend.services.intelligent_risk_engine import analyze_ml_risk
 from backend.services.graph_intelligence_engine import analyze_graph_intelligence
+from backend.services.threat_intelligence import check_threat_intelligence
+from backend.services.alert_manager import process_and_store_alert
 
 logger = logging.getLogger(__name__)
 
@@ -101,8 +103,13 @@ def process_cyber_event(payload: CyberEventRequest, db: Session) -> dict:
         user_profile=user_profile,
         last_event=last_event
     )
+    
+    event_dict = payload.model_dump()
 
-    # 3. Adaptive Intelligence (Drift)
+    # 3. Threat Intelligence Engine (Phase 7)
+    threat_intel_result = check_threat_intelligence(event_dict, telemetry_profile)
+
+    # 4. Adaptive Intelligence (Drift)
     id_risk, beh_risk, drift_reasons = evaluate_customer_intelligence(
         payload, telemetry_profile, user_profile
     )
@@ -119,8 +126,7 @@ def process_cyber_event(payload: CyberEventRequest, db: Session) -> dict:
     # 6. Graph Intelligence Engine (Phase 6)
     graph_analysis = analyze_graph_intelligence(payload, db)
 
-    # 7. Risk Aggregation
-    event_dict = payload.model_dump()
+    # 8. Risk Aggregation
     analysis = analyze_event(
         event=event_dict, 
         telemetry=telemetry_profile,
@@ -133,50 +139,15 @@ def process_cyber_event(payload: CyberEventRequest, db: Session) -> dict:
         threat_story=threat_story,
         threat_risk_bonus=threat_bonus,
         ml_analysis=ml_analysis,
-        graph_analysis=graph_analysis
+        graph_analysis=graph_analysis,
+        threat_intel_result=threat_intel_result
     )
     
-    # 6. Persistence
-    new_event = CyberEvent(
-        event_id=payload.event_id,
-        user_id=payload.user_id,
-        event_type=payload.event_type.value,
-        device_id=payload.device_id or telemetry_profile.device_id,
-        ip_address=telemetry_profile.ip,
-        location=payload.location,
-        session_id=telemetry_profile.session_id,
-        correlation_id=payload.correlation_id,
-        source=payload.source.value,
-        severity=analysis["severity"],
-        status="FLAGGED" if analysis["alert"] else "PROCESSED",
-        metadata_payload=payload.metadata_payload,
-        raw_telemetry=payload.raw_telemetry.model_dump() if payload.raw_telemetry else {},
-        telemetry_profile=telemetry_profile.model_dump(),
-        risk_score=analysis["risk_score"],
-        risk_level=analysis["risk_level"]
-    )
-    db.add(new_event)
-    
-    # Update profile
+    # Update profile (Baseline updates)
     _update_user_profile(user_profile, payload, telemetry_profile, analysis["alert"], db)
     
-    # Create alert if needed
-    if analysis["alert"]:
-        alert = FraudAlert(
-            alert_id=f"ALT-{new_event.event_id}",
-            event_id=new_event.event_id,
-            user_id=new_event.user_id,
-            risk_score=analysis["risk_score"],
-            risk_level=analysis["risk_level"],
-            reasons=analysis["reasons"],
-            recommended_action=analysis["recommended_action"],
-            suggested_step=analysis.get("suggested_step")
-        )
-        db.add(alert)
-        
-    db.commit()
-    
-    # Enrich the analysis dict for the API response
-    analysis["telemetry_profile"] = telemetry_profile.model_dump()
-    
-    return analysis
+    # 9. Alert Manager (Phase 9 & 10)
+    # Delegates decision routing, DB persistence, and WebSocket broadcasting
+    final_result = process_and_store_alert(event_dict, analysis, db)
+
+    return final_result

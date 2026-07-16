@@ -48,6 +48,11 @@ from backend.routes import (
     websocket_router,
     ai_router,
 )
+from backend.api.copilot_router import router as copilot_router
+from backend.api.dashboard_router import router as dashboard_router
+from backend.api.customer_router import router as customer_router
+from backend.api.explain_router import router as explain_router
+from backend.api.reports_router import router as reports_router
 
 # ──────────────────────────────────────────────
 # Logging
@@ -106,6 +111,11 @@ app.include_router(simulation_router)
 app.include_router(graph_router)
 app.include_router(websocket_router)
 app.include_router(ai_router)
+app.include_router(copilot_router)
+app.include_router(dashboard_router)
+app.include_router(customer_router)
+app.include_router(explain_router)
+app.include_router(reports_router)
 
 
 # ──────────────────────────────────────────────

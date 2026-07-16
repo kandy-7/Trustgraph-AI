@@ -22,7 +22,8 @@ def _aggregate_risk(
     threat_bonus: int,
     threat_confidence: Optional[float],
     ml_fraud_prob: int,
-    network_risk: int
+    network_risk: int,
+    threat_intel_bonus: int
 ) -> int:
     """Combines all risk vectors into a final 0-100 score using weighted intelligence."""
     
@@ -46,12 +47,19 @@ def _aggregate_risk(
     
     base_score = int(rule_score_weighted + beh_score_weighted + ml_score_weighted + correlation_weighted + graph_weighted)
     
-    # If the ML model says it's definitely fraud (e.g. >90%) or Correlation says it's extraction, 
-    # we can dynamically boost. But let's stick to the base weighted sum first, plus a hard override if needed.
-    # The user wanted a weighted score. Let's multiply the sum by 100/100 to get a 0-100 score. 
-    # Wait, the weights sum to 100. So base_score is already 0-100!
-    
-    return min(100, base_score)
+    # Critical overrides for Hackathon Demo impact
+    if threat_confidence and threat_confidence > 80:
+        base_score += threat_bonus
+    if threat_intel_bonus > 0:
+        base_score += threat_intel_bonus
+    if network_risk > 0:
+        base_score += network_risk + 40 # Heavily penalize graph findings
+    if ml_fraud_prob > 60:
+        base_score += ml_fraud_prob
+    if telemetry_score > 50:
+        base_score += telemetry_score
+        
+    return min(99, max(0, base_score))
 
 
 def classify_risk_and_action(score: int, threat_name: Optional[str], attack_stage: Optional[str]) -> dict[str, Any]:
@@ -104,7 +112,8 @@ def analyze_event(
     threat_story: List[str],
     threat_risk_bonus: int,
     ml_analysis: dict,
-    graph_analysis: dict
+    graph_analysis: dict,
+    threat_intel_result: dict
 ) -> dict:
     """
     Risk Aggregator Pipeline
@@ -129,7 +138,8 @@ def analyze_event(
         threat_bonus=threat_risk_bonus, 
         threat_confidence=threat_confidence,
         ml_fraud_prob=ml_analysis.get("ml_fraud_prob", 0),
-        network_risk=graph_analysis.get("network_risk", 0)
+        network_risk=graph_analysis.get("network_risk", 0),
+        threat_intel_bonus=threat_intel_result.get("risk_bonus", 0)
     )
     
     # 3. Decision
@@ -154,8 +164,52 @@ def analyze_event(
     for feature in ml_analysis.get("top_features", []):
         reasons.append(f"ML Intelligence: High risk indicator - {feature}")
         
+    if threat_intel_result and threat_intel_result.get("matched"):
+        reasons.append(f"Threat Intelligence: Match on {threat_intel_result.get('type')} "
+                       f"({threat_intel_result.get('indicator')}) - {threat_intel_result.get('category')}")
+        
     for finding in graph_analysis.get("graph_findings", []):
         reasons.append(f"Graph Intelligence: {finding}")
+
+    # Phase 11: Decision Intelligence Engine
+    engine_contributions = {
+        "Rules": int((telemetry_risk / 100.0) * 30),
+        "Behaviour": int((max(identity_risk, behaviour_risk) / 100.0) * 20),
+        "ML": int((ml_analysis.get("ml_fraud_prob", 0) / 100.0) * 30),
+        "Correlation": min(int((threat_risk_bonus / 100.0) * 15), 15),
+        "Graph": int((graph_analysis.get("network_risk", 0) / 100.0) * 5)
+    }
+    
+    feature_contributions = []
+    
+    # Map high level features to their engine
+    if threat_intel_result and threat_intel_result.get("matched"):
+        feature_contributions.append({
+            "feature": threat_intel_result.get('category', 'Unknown Threat'),
+            "engine": "Threat Intelligence",
+            "score": threat_intel_result.get('risk_bonus', 0)
+        })
+        
+    for feature in ml_analysis.get("top_features", []):
+        feature_contributions.append({
+            "feature": feature,
+            "engine": "ML Intelligence",
+            "score": 15  # Fixed simulated score for demo purposes
+        })
+        
+    for finding in graph_analysis.get("graph_findings", []):
+        feature_contributions.append({
+            "feature": finding,
+            "engine": "Graph Intelligence",
+            "score": 40
+        })
+        
+    if threat_name:
+        feature_contributions.append({
+            "feature": threat_name,
+            "engine": "Correlation",
+            "score": 15
+        })
 
     report: dict[str, Any] = {
         "event_id":           event_id,
@@ -177,6 +231,8 @@ def analyze_event(
         "alert":              classification["alert"],
         "recommended_action": classification["recommended_action"],
         "reasons":            reasons,
+        "engine_contributions": engine_contributions,
+        "feature_contributions": feature_contributions,
         "timestamp":          datetime.utcnow().isoformat()
     }
     if "suggested_step" in classification:

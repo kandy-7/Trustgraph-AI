@@ -10,11 +10,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.database import get_db
-from backend.models.schemas import SimulateRequest, SimulateResponse, TransactionResponse
-from backend.services.simulator import generate_transactions, list_scenarios
-from backend.services.fraud_engine import analyze_transaction
-from backend.models.db_models import Transaction, FraudAlert
+from backend.test_scenarios import process_cyber_event
+from backend.models.schemas import CyberEventRequest, RawClientTelemetry
 import uuid
 
 router = APIRouter(prefix="/api/simulate", tags=["Simulation"])
@@ -33,75 +30,55 @@ logger = logging.getLogger(__name__)
         "Generate synthetic transactions for a named scenario "
         "(account_takeover, sim_swap, upi_phishing, mule_account, normal_user, random). "
         "Each transaction is run through the full fraud engine and persisted."
-    )
+    ""
 )
-def run_simulation(payload: SimulateRequest, db: Session = Depends(get_db)):
-    valid_keys = {s["key"] for s in list_scenarios()}
-    if payload.scenario not in valid_keys:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown scenario '{payload.scenario}'. "
-                   f"Valid: {sorted(valid_keys)}"
-        )
-
-    raw_txns = generate_transactions(
-        scenario = payload.scenario,
-        count    = payload.count,
-        user_id  = payload.user_id
+def run_simulation(scenario: str = "ALL", db: Session = Depends(get_db)):
+    # Run the Shared Device and Credential Stuffing scenarios to generate rich DB data
+    
+    # Generate random unique IDs for the demo
+    suffix = uuid.uuid4().hex[:4]
+    
+    # 1. Credential Stuffing
+    from backend.models.schemas import CyberEventRequest, RawClientTelemetry
+    from backend.test_scenarios import process_cyber_event
+    
+    req_stuffing = CyberEventRequest(
+        user_id=f"USR-VICTIM-{suffix}",
+        event_id=f"EVT-STUFF-{suffix}",
+        event_type="LOGIN_FAILED",
+        ip_address="185.15.42.100", # Botnet IP
+        location="Russia",
+        device_id=f"DEV-NEW-{suffix}",
+        metadata_payload={"reason": "Invalid Password"},
+        raw_telemetry=RawClientTelemetry(browser_fingerprint="curl/7.68.0")
     )
-
-    results: list[TransactionResponse] = []
-
-    for raw in raw_txns:
-        analysis = analyze_transaction(raw)
-        if "error" in analysis:
-            logger.warning("Skipping bad simulated txn: %s", analysis)
-            continue
-
-        # Persist
-        db_txn = Transaction(
-            transaction_id    = analysis["transaction_id"],
-            user_id           = analysis["user_id"],
-            amount            = analysis["amount"],
-            payment_type      = raw.get("payment_type", "UPI"),
-            location          = raw.get("location", "Unknown"),
-            beneficiary_id    = raw.get("beneficiary_id"),
-            beneficiary_type  = raw.get("beneficiary_type", "known"),
-            device_id         = raw.get("device_id"),
-            trusted_device    = raw.get("trusted_device", True),
-            login_time        = raw.get("login_time", "12:00"),
-            is_fraud          = raw.get("isFraud", 0),
-            risk_score        = analysis["risk_score"],
-            risk_level        = analysis["risk_level"],
-            risk_reasons      = analysis["reasons"],
-            recommended_action= analysis["recommended_action"],
-            suggested_step    = analysis.get("suggested_step"),
-        )
-        db.add(db_txn)
-
-        if analysis["alert"]:
-            db.add(FraudAlert(
-                alert_id          = f"ALT-{uuid.uuid4().hex[:10].upper()}",
-                transaction_id    = analysis["transaction_id"],
-                user_id           = analysis["user_id"],
-                risk_score        = analysis["risk_score"],
-                risk_level        = analysis["risk_level"],
-                reasons           = analysis["reasons"],
-                recommended_action= analysis["recommended_action"],
-                suggested_step    = analysis.get("suggested_step"),
-                status            = "OPEN"
-            ))
-
-        results.append(TransactionResponse(**analysis))
-
-    db.commit()
-    logger.info("Simulation '%s' generated %d transactions.", payload.scenario, len(results))
-
-    return SimulateResponse(
-        scenario  = payload.scenario,
-        generated = len(results),
-        results   = results
+    process_cyber_event(req_stuffing, db)
+    
+    req_success = CyberEventRequest(
+        user_id=f"USR-VICTIM-{suffix}",
+        event_id=f"EVT-SUCC-{suffix}",
+        event_type="LOGIN_SUCCESS",
+        ip_address="45.22.11.99",
+        location="Unknown",
+        device_id=f"DEV-NEW-{suffix}",
+        metadata_payload={},
+        raw_telemetry=RawClientTelemetry(network_type="vpn")
     )
+    process_cyber_event(req_success, db)
+    
+    req_transfer = CyberEventRequest(
+        user_id=f"USR-VICTIM-{suffix}",
+        event_id=f"EVT-TX-{suffix}",
+        event_type="TRANSFER",
+        ip_address="45.22.11.99",
+        location="Unknown",
+        device_id=f"DEV-NEW-{suffix}",
+        metadata_payload={"amount": 490000, "beneficiary_id": "BEN-00291"},
+        raw_telemetry=RawClientTelemetry()
+    )
+    process_cyber_event(req_transfer, db)
+    
+    return {"status": "Simulation generated successfully", "events_created": 3}
 
 
 # ──────────────────────────────────────────────

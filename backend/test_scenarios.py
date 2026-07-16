@@ -63,7 +63,7 @@ def run_scenarios():
         ip_address="45.22.11.99",
         location="Unknown",
         device_id="DEV-UNKNOWN",
-        metadata_payload={"amount": 490000},
+        metadata_payload={"amount": 490000, "beneficiary_id": "BEN-00291"},
         raw_telemetry=RawClientTelemetry()
     )
     res_sim_transfer = process_cyber_event(req_transfer, db)
@@ -76,8 +76,7 @@ def run_scenarios():
             user_id=f"USR-VICTIM-{i}",
             event_id=f"EVT-MULE-{i}",
             event_type="TRANSFER",
-            beneficiary_id="MULE-001",
-            metadata_payload={"amount": 10000},
+            metadata_payload={"amount": 10000, "beneficiary_id": "MULE-001"},
             raw_telemetry=RawClientTelemetry()
         )
         process_cyber_event(req_mule_in, db)
@@ -87,8 +86,7 @@ def run_scenarios():
         user_id="MULE-001",
         event_id="EVT-004",
         event_type="TRANSFER",
-        beneficiary_id="UNKNOWN-EXTERNAL",
-        metadata_payload={"amount": 35000},
+        metadata_payload={"amount": 35000, "beneficiary_id": "UNKNOWN-EXTERNAL"},
         raw_telemetry=RawClientTelemetry()
     )
     res_mule = process_cyber_event(req_mule, db)
