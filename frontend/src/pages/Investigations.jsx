@@ -60,7 +60,7 @@ export default function Investigations() {
   };
 
   return (
-    <div id="investigation-content" className="mx-auto max-w-6xl space-y-5">
+    <div id="investigation-content" className="mx-auto max-w-6xl p-6 lg:p-8 space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

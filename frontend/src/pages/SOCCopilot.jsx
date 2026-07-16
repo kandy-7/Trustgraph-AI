@@ -81,7 +81,7 @@ export default function SOCCopilot() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-9rem)] flex-col">
+    <div className="flex h-full flex-col p-6 lg:p-8">
       {/* Header */}
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">

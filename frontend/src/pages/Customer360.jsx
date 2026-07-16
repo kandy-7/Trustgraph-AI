@@ -40,7 +40,7 @@ export default function Customer360() {
   }, []);
 
   if (!profile) return (
-    <div className="space-y-4">
+    <div className="p-6 lg:p-8 space-y-4">
       {[1,2,3].map(i => <div key={i} className="skeleton h-24 w-full" />)}
     </div>
   );
@@ -62,7 +62,7 @@ export default function Customer360() {
   const displayTimeline = timeline.length > 0 ? timeline : mockTimeline;
 
   return (
-    <div className="space-y-5">
+    <div className="p-6 lg:p-8 space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

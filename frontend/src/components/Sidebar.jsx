@@ -27,7 +27,7 @@ const NAV_SECTIONS = [
 ];
 
 export default function Sidebar() {
-  const { stats, wsConnected } = useAppContext();
+  const { stats, wsConnected, logout } = useAppContext();
   const critical = stats.threatLevel === 'CRITICAL';
 
   return (
@@ -103,6 +103,13 @@ export default function Sidebar() {
           <Activity className="h-3.5 w-3.5" />
           {wsConnected ? 'WebSocket Connected' : 'WebSocket Offline (Demo)'}
         </div>
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-2.5 rounded-xl border border-rose-500/20 bg-rose-500/5 px-3 py-2 text-xs font-semibold text-rose-400 transition-all hover:bg-rose-500/10"
+        >
+          <span>🚪</span>
+          Sign Out
+        </button>
       </div>
     </aside>
   );

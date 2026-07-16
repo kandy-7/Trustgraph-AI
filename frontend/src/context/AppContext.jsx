@@ -34,6 +34,8 @@ export const AppProvider = ({ children }) => {
   const wsRef = useRef(null);
   const intervalRef = useRef(null);
 
+  const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('tg_auth') === 'true');
+
   // Toast system
   const addToast = useCallback((toast) => {
     const id = Date.now();
@@ -45,9 +47,26 @@ export const AppProvider = ({ children }) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
+  const login = useCallback((email, password) => {
+    if (email === 'admin@trustgraph.ai' && password === 'password123') {
+      localStorage.setItem('tg_auth', 'true');
+      setIsAuthenticated(true);
+      addToast({ severity: 'LOW', msg: 'Access Granted: Welcome back, JD' });
+      return true;
+    }
+    addToast({ severity: 'CRITICAL', msg: 'Access Denied: Invalid credentials' });
+    return false;
+  }, [addToast]);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('tg_auth');
+    setIsAuthenticated(false);
+    addToast({ severity: 'LOW', msg: 'Logged out successfully' });
+  }, [addToast]);
+
   // Connect WebSocket to live backend
   useEffect(() => {
-    if (USE_MOCK_DATA) return;
+    if (USE_MOCK_DATA || !isAuthenticated) return;
     
     const connect = () => {
       try {
@@ -84,11 +103,11 @@ export const AppProvider = ({ children }) => {
     };
     connect();
     return () => { wsRef.current?.close(); };
-  }, [addToast]);
+  }, [addToast, isAuthenticated]);
 
   // Fetch live stats from backend
   useEffect(() => {
-    if (USE_MOCK_DATA) return;
+    if (USE_MOCK_DATA || !isAuthenticated) return;
     const fetch = () => {
       getDashboardOverview()
         .then(data => {
@@ -108,7 +127,7 @@ export const AppProvider = ({ children }) => {
     fetch();
     const id = setInterval(fetch, 30000);
     return () => clearInterval(id);
-  }, []);
+  }, [isAuthenticated]);
 
   // Simulation engine (UI-side demo + optional backend trigger)
   const runSimulation = useCallback(async (mode) => {
@@ -158,7 +177,8 @@ export const AppProvider = ({ children }) => {
   return (
     <AppContext.Provider value={{
       stats, liveEvents, toasts, investigationCase,
-      wsConnected, addToast, removeToast, runSimulation
+      wsConnected, addToast, removeToast, runSimulation,
+      isAuthenticated, login, logout
     }}>
       {children}
     </AppContext.Provider>

@@ -41,7 +41,7 @@ export default function ThreatIntelligence() {
   const affected = CATEGORIES.reduce((s, c) => s + c.users, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 lg:p-8 space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <p className="eyebrow">Threat Intelligence Engine</p>
